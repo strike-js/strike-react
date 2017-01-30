@@ -1,8 +1,10 @@
 {
   "name": "strikejs-react",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A state management framework for ReactJS applications. ",
   "main": "lib/index.js",
+  "types":"strikejs-react.d.ts",
+  "typings":"strikejs-react.d.ts",
   "scripts": {
     "test": "mocha --compilers js:babel-core/register"
   },

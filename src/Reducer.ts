@@ -15,5 +15,5 @@ export interface Reducer{
 	 * 
 	 * @type {string}
 	 */
-	name: string;
+	name?: string;
 }
