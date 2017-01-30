@@ -2,6 +2,7 @@ declare module "strikejs-react" {
 
     import * as React from 'react';
     import {Dictionary} from 'strikejs-util';
+    import * as Immutable from 'immutable'; 
     /**
      * Represents an action triggered with-in the application.
      * 
