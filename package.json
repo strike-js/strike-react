@@ -1,0 +1,30 @@
+{
+  "name": "strike-react",
+  "version": "1.0.0",
+  "description": "A state management framework for ReactJS applications. ",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "mocha --compilers js:babel-core/register"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/strike-js/strike-react.git"
+  },
+  "keywords": [
+    "State",
+    "Management",
+    "ReactJS",
+    "TypeScript"
+  ],
+  "author": "Suhail Abood <suhail.abood@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/strike-js/strike-react/issues"
+  },
+  "homepage": "https://github.com/strike-js/strike-react#readme",
+  "dependencies": {
+    "react": "^15.4.2",
+    "react-dom": "^15.4.2",
+    "strikejs-util": "^1.1.0"
+  }
+}
