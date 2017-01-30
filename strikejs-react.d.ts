@@ -95,7 +95,7 @@ declare module "strikejs-react" {
      * @export
      * @interface ControllerViewProps
      */
-    export interface ControllerViewProps<T> {
+    export interface ControllerViewProps {
         /**
          * (description)
          * 
@@ -105,13 +105,6 @@ declare module "strikejs-react" {
 
         persistenceStrategy?:PersistenceStrategy;
 
-        stateKey:string;
-
-        reducer:Reducer; 
-
-        initialState?:T;
-
-        children:(state:T)=>React.ReactElement<any>;
     }
     /**
      * A {ControllerView} is a ReactJS component that manages a specific space of the application state. 
@@ -124,7 +117,7 @@ declare module "strikejs-react" {
      * @template T any object that extends/implements {ControllerViewProps}
      * @template V
      */
-    export class ControllerView<T extends ControllerViewProps<S>,S> extends React.Component<T,S> {
+    export class ControllerView<T extends ControllerViewProps,S> extends React.Component<T,S> {
         /**
          * The application state store
          * 
@@ -152,7 +145,7 @@ declare module "strikejs-react" {
          * @param {Reducer} reducer the reducer function of the component, this is also passed to the store upon mounting. 
          */
         dispatch:DispatchFn<any>;
-        constructor(props:T);
+        constructor(props:T,stateKey:string,initialState:S,reducer:Reducer);
 
         /**
          * Returns the component's reducer function 
@@ -179,7 +172,6 @@ declare module "strikejs-react" {
          * Note: if this method is overriden in the child class, the child class must call `super.componentWillUnmount()`
          */
         componentWillUnmount();
-
     }
 
     class Combiner {

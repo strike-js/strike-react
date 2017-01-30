@@ -10,7 +10,7 @@ import * as Immutable from 'immutable';
  * @export
  * @interface ControllerViewProps
  */
-export interface ControllerViewProps<T> {
+export interface ControllerViewProps {
 	/**
 	 * (description)
 	 * 
@@ -20,13 +20,6 @@ export interface ControllerViewProps<T> {
 
 	persistenceStrategy?:PersistenceStrategy;
 
-	stateKey:string;
-
-	reducer:Reducer; 
-
-	initialState?:T;
-
-	children:(state:T)=>React.ReactElement<any>;
 }
 /**
  * A {ControllerView} is a ReactJS component that manages a specific space of the application state. 
@@ -39,7 +32,7 @@ export interface ControllerViewProps<T> {
  * @template T any object that extends/implements {ControllerViewProps}
  * @template V
  */
-export class ControllerView<T extends ControllerViewProps<S>,S> extends React.Component<T,S> {
+export class ControllerView<T extends ControllerViewProps,S> extends React.Component<T,S> {
 	/**
 	 * The application state store
 	 * 
@@ -67,14 +60,13 @@ export class ControllerView<T extends ControllerViewProps<S>,S> extends React.Co
 	 * @param {Reducer} reducer the reducer function of the component, this is also passed to the store upon mounting. 
 	 */
 	dispatch:DispatchFn<any>;
-	constructor(props:T){
+	constructor(props:T,stateKey:string,initialState:S,reducer:Reducer){
 		super(props);
-		let {store,reducer,stateKey,initialState} = props; 
 		this.state = initialState; 
 		this.$$store = props.store; 
 		this.$$stateKey = stateKey;
 		this.$$reducer = reducer;
-		this.dispatch = store.dispatch; 
+		this.dispatch = this.$$store.dispatch; 
 	}
 
 	/**
@@ -124,9 +116,5 @@ export class ControllerView<T extends ControllerViewProps<S>,S> extends React.Co
 			strategy.put(this.$$stateKey,this.state); 
 		}
 		this.$$store.disconnect(this);
-	}
-
-	render(){
-		return this.props.children(this.state);
 	}
 }

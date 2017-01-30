@@ -12,14 +12,13 @@ import * as Immutable from 'immutable';
  * @template V
  */
 export class ControllerView extends React.Component {
-    constructor(props) {
+    constructor(props, stateKey, initialState, reducer) {
         super(props);
-        let { store, reducer, stateKey, initialState } = props;
         this.state = initialState;
         this.$$store = props.store;
         this.$$stateKey = stateKey;
         this.$$reducer = reducer;
-        this.dispatch = store.dispatch;
+        this.dispatch = this.$$store.dispatch;
     }
     /**
      * Returns the component's reducer function
@@ -63,8 +62,5 @@ export class ControllerView extends React.Component {
             strategy.put(this.$$stateKey, this.state);
         }
         this.$$store.disconnect(this);
-    }
-    render() {
-        return this.props.children(this.state);
     }
 }
