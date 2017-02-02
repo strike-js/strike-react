@@ -101,6 +101,7 @@ export class ControllerView<T extends ControllerViewProps,S> extends React.Compo
 				.then((em)=>{
 					if (em){
 						this.$$store.replaceStateAt(stateKey,Immutable.Map<string,any>(em));
+						this.setState(em);
 					}
 				});
 		}
