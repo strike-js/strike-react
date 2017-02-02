@@ -5,12 +5,14 @@ import { Injector } from './Injector';
 import { ControllerView } from './ControllerView';
 import { IntegerPromisifer } from './IntegerPromisifyMiddleware';
 import { Injectable } from './InjectableMiddleware';
+import { localStorageStrategy } from './LocalStoragePersistentStrategy';
 (function () {
     if (window && document) {
         window.StrikeJS = {
             Store,
             WorkerMiddleware,
             ControllerView,
+            localStorageStrategy,
             Injector,
             Promisify,
             IntegerPromisifer,

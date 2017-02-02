@@ -5,6 +5,7 @@ import {Injector} from './Injector';
 import {ControllerView} from './ControllerView';
 import {IntegerPromisifer} from './IntegerPromisifyMiddleware';
 import {Injectable} from './InjectableMiddleware';
+import {localStorageStrategy} from './LocalStoragePersistentStrategy';
 
 (function(){
     if (window && document){
@@ -12,6 +13,7 @@ import {Injectable} from './InjectableMiddleware';
             Store,
             WorkerMiddleware,
             ControllerView,
+            localStorageStrategy,
             Injector,
             Promisify,
             IntegerPromisifer,
