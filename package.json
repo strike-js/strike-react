@@ -1,6 +1,6 @@
 {
   "name": "strikejs-react",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A state management framework for ReactJS applications. ",
   "main": "lib/index.js",
   "types": "strikejs-react.d.ts",

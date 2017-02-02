@@ -5,13 +5,15 @@ import {WorkerMiddleware} from './WorkerMiddleware';
 import {Promisify} from './PromisifyMiddleware';
 import {ControllerView} from './ControllerView';
 import {Store} from './Store';
+import {localStorageStrategy} from './LocalStoragePersistentStrategy';
 
 export {Store,Injector,Injectable,
     IntegerPromisifer,WorkerMiddleware,
-    Promisify,ControllerView}; 
+    Promisify,ControllerView,localStorageStrategy}; 
 
 
 (function(StrikeJS:any){
+    StrikeJS.localStorageStrategy = localStorageStrategy; 
     StrikeJS.Store = Store; 
     StrikeJS.ControllerView = ControllerView;
     StrikeJS.Promisify = Promisify; 
