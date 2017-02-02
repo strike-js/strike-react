@@ -700,4 +700,7 @@ declare module "strikejs-react" {
     export function WorkerMiddleware(worker: Worker, store: Store):Middleware;
 
 
+    export function localStorageStrategy():PersistenceStrategy;
+
+
 }
