@@ -1,15 +1,20 @@
 import {PersistenceStrategy} from './PersistenceStrategy'; 
 export function localStorageStrategy():PersistenceStrategy{
     function get(key:string){
-        return new Promise((resolve,rejct)=>{
+        return new Promise((resolve,reject)=>{
             let v = localStorage.getItem(key); 
-            return v && JSON.parse(v);
+            if (v){
+                resolve(JSON.parse(v));
+                return;
+            }
+            reject();
         });
     }
 
     function put(key:string,data:any){
         return new Promise((resolve,reject)=>{
             localStorage.setItem(key,JSON.stringify(data));
+            resolve();
         });
     }
 
