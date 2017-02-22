@@ -49,7 +49,7 @@ function createDispatcher():Dispatcher{
 	var busy = false; 
 	function done(){
 		busy = false; 
-		count--; 
+		// count--; 
 		if (list.length > 0){
 			exec();
 		}
@@ -62,8 +62,8 @@ function createDispatcher():Dispatcher{
 		// while((item = list.shift()) && item.status === ChangeStatus.OBSELETE){}
 		if (item){
 			// requestAnimationFrame(()=>{
-				item.status = ChangeStatus.EXECUTING;
-				item.value[0].setState(item.value[1],done);  
+			item.status = ChangeStatus.EXECUTING;
+			item.value[0].setState(item.value[1],done);  
 			// });
 		}
 	}
@@ -77,9 +77,10 @@ function createDispatcher():Dispatcher{
 		};//changePool.get(); 
 		// obj.status = ChangeStatus.PENDING;
 		// obj.value = [c,newState]; 
-		if (!objs){
-			objs = changed[key] = []; 
-		}
+		// if (!objs){
+		// 	objs = changed[key] = []; 
+		// }
+		list.push(obj);
 		if (busy){
 			// objs = objs.filter((e)=>{
 			// 	let ok = e.status === ChangeStatus.EXECUTING;
@@ -88,13 +89,12 @@ function createDispatcher():Dispatcher{
 			// 	}
 			// 	return ok
 			// });
-			objs.push(obj);
-			list.push(obj);
+			// objs.push(obj);
 			return; 
 		}
-		list.push(obj); 
+		// list.push(obj); 
 		exec(); 
-		busy = true; 
+		// busy = true; 
 		
 	}
 
