@@ -3,7 +3,7 @@ import {Reducer} from './Reducer';
 import {Middleware} from './Middleware';
 import {Combiner} from './Combiner';
 import {StatefulComponent} from './StatefulComponent';
-
+import * as React from 'react'; 
 import {Action} from './Action';
 import * as Immutable from 'immutable';
 
@@ -58,31 +58,36 @@ function createDispatcher():Dispatcher{
 	function exec(){
 		busy = true; 
 		let item:StateChange = null;
-		while((item = list.shift()) && item.status === ChangeStatus.OBSELETE){}
+		item = list.shift();
+		// while((item = list.shift()) && item.status === ChangeStatus.OBSELETE){}
 		if (item){
-			requestAnimationFrame(()=>{
+			// requestAnimationFrame(()=>{
 				item.status = ChangeStatus.EXECUTING;
 				item.value[0].setState(item.value[1],done);  
-			});
+			// });
 		}
 	}
 
 	function run(c:StatefulComponent<any>,newState:any){
 		let key = c.getStateKey(), objs = changed[key], obj:StateChange;
-		obj = changePool.get(); 
-		obj.status = ChangeStatus.PENDING;
-		obj.value = [c,newState]; 
+		obj = {
+			key,
+			status:ChangeStatus.PENDING,
+			value:[c,newState]
+		};//changePool.get(); 
+		// obj.status = ChangeStatus.PENDING;
+		// obj.value = [c,newState]; 
 		if (!objs){
 			objs = changed[key] = []; 
 		}
 		if (busy){
-			objs = objs.filter((e)=>{
-				let ok = e.status === ChangeStatus.EXECUTING;
-				if (!ok){
-					e.status = ChangeStatus.OBSELETE;
-				}
-				return ok
-			});
+			// objs = objs.filter((e)=>{
+			// 	let ok = e.status === ChangeStatus.EXECUTING;
+			// 	if (!ok){
+			// 		e.status = ChangeStatus.OBSELETE;
+			// 	}
+			// 	return ok
+			// });
 			objs.push(obj);
 			list.push(obj);
 			return; 
@@ -231,6 +236,8 @@ export class Store {
 		}
 		this.replaceStateAt(key,Immutable.Map<string,any>(elem.state));
 	}
+
+	// public connectClass(clz:React.)
 
 	/**
 	 * Add a given middleware to the list of registered middleware. 
