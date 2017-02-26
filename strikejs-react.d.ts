@@ -3,6 +3,7 @@ declare module "strikejs-react" {
     import * as React from 'react';
     import {Dictionary} from 'strikejs-util';
     import * as Immutable from 'immutable'; 
+    import * as Promise from 'bluebird'; 
     /**
      * Represents an action triggered with-in the application.
      * 
