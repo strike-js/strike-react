@@ -1,5 +1,20 @@
 'use strict';
-import {Dictionary, extractArgumentsFromFunction} from 'strikejs-util';
+/**
+ * Extracts the names of the parameters from functions
+ * 
+ * @export
+ * @param {Function} fn the function to extract its parameters' names.
+ * @returns {Array<string>} array of parameters names  
+ */
+export function extractArgumentsFromFunction(fn: Function): any {
+    let deps: any;
+    fn.toString()
+        .replace(/^function[\s]+?[\S]+?\((.*?)\)/, function(e: string, v: string, k: number) {
+            deps = (v.trim().length > 0 && v.trim().split(/[\s,]+/)) || [];
+            return e;
+        })
+    return deps;
+}
 
 /**
  * A dependency injection module inspired by AngularJS's dependency injection. 

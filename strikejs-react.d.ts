@@ -1,6 +1,15 @@
 declare module "strikejs-react" {
 
     import * as React from 'react';
+
+    /**
+     * Extracts the names of the parameters from functions
+     * 
+     * @export
+     * @param {Function} fn the function to extract its parameters' names.
+     * @returns {Array<string>} array of parameters names  
+     */
+    export function extractArgumentsFromFunction(fn: Function): any;
     
     /**
      * Represents an action triggered with-in the application.
@@ -644,7 +653,7 @@ declare module "strikejs-react" {
      * @returns {IMiddleware} 
      */
     export function WorkerMiddleware(worker:Worker,store:IStore):IMiddleware;
-    
+
     /**
      * Creates a multi-worker middleware. 
      * 

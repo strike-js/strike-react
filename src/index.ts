@@ -1,4 +1,4 @@
-import {Injector} from './Injector'; 
+import {Injector,extractArgumentsFromFunction} from './Injector'; 
 import {Injectable} from './InjectableMiddleware'; 
 import {createPool} from './Pool'; 
 import {createManagedState} from './ManagedState'; 
@@ -11,6 +11,7 @@ import {localStorageStrategy} from './LocalStoragePersistentStrategy';
 
 export {createStore,Injector,Injectable,
     createManagedState,WorkerMiddleware,
+    extractArgumentsFromFunction,
     createPool,MultiWorkerMiddleware,WebSocketMiddleware,
     PromisifyMiddleware,createControllerView,
     localStorageStrategy}; 
@@ -20,6 +21,7 @@ export {createStore,Injector,Injectable,
     StrikeJS.createStore = createStore; 
     StrikeJS.createControllerView = createControllerView;
     StrikeJS.PromisifyMiddleware = PromisifyMiddleware; 
+    StrikeJS.extractArgumentsFromFunction = extractArgumentsFromFunction; 
     StrikeJS.WorkerMiddleware = WorkerMiddleware; 
     StrikeJS.createPool = createPool; 
     StrikeJS.createManagedState = createManagedState; 

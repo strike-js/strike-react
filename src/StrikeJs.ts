@@ -1,6 +1,6 @@
 import {createStore} from './Store';
 import {PromisifyMiddleware} from './PromisifyMiddleware';
-import {Injector} from './Injector';
+import {Injector,extractArgumentsFromFunction} from './Injector';
 import {createControllerView} from './ControllerView';
 import {Injectable} from './InjectableMiddleware';
 import {localStorageStrategy} from './LocalStoragePersistentStrategy';
@@ -19,6 +19,7 @@ import {WorkerMiddleware,MultiWorkerMiddleware} from './WorkerMiddleware';
             MultiWorkerMiddleware,
             createControllerView,
             createManagedState,
+            extractArgumentsFromFunction,
             localStorageStrategy,
             Injector,
             PromisifyMiddleware,
