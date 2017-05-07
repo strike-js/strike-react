@@ -190,6 +190,8 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 
 		render(){
 			propsObject.data = this.state; 
+			(propsObject as any).routeParams = (this.props as any).routeParams;
+			propsModifier && propsModifier(this.props,propsObject);
 			return React.createElement(component as any,
 				propsObject,
 				this.props.children); 
