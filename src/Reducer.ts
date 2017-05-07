@@ -1,5 +1,5 @@
 import {Action} from './Action';
-
+import {IManagedState} from './ManagedState'; 
 /**
  * A function that receives the current state of a {ControllerView} component, and an {Action}, and it returns 
  * either the new state of the {ControllerView} component if the {Action} changes the state, or a 
@@ -7,13 +7,6 @@ import {Action} from './Action';
  * @export
  * @interface Reducer
  */
-
 export interface Reducer{
-	(state: Immutable.Map<string,any>, action: Action): Immutable.Map<string,any>;
-	/**
-	 * the name of the reducer function.
-	 * 
-	 * @type {string}
-	 */
-	name?: string;
+	(state:IManagedState,action:Action):void; 
 }

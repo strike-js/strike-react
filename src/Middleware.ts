@@ -1,5 +1,5 @@
 import {Action} from './Action';
-import {Store} from './Store';
+import {IStore} from './Store';
 /**
  * A function that receives the currently dispatched {Action} and the application store and returns either a new {Action} object or 
  * null to stop the execution of the dispatched action. 
@@ -9,6 +9,13 @@ import {Store} from './Store';
  * @see {PromisifyMiddleware} 
  * @see {InjectableMiddleware} 
  */
-export interface Middleware {
-	(arg:Action,store:Store):Action
+export interface IMiddleware {
+	(action:Action,store:IStore,next:IMiddlewareNext):void; 
+}
+
+/**
+ * Represents a callback to trigger the next middleware
+ */
+export interface IMiddlewareNext {
+	(action?:Action):void
 }

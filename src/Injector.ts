@@ -195,7 +195,7 @@ export class Injector {
 			if (typeof arguments[0] !== "string") {
 				throw new Error('Injector: first argument must be of type string.');
 			}
-			if (arguments[2] === null) {
+			if (arguments[1] === null) {
 				throw new Error('Injector: second argument cannot be null');
 			}
 			name = arguments[0];
@@ -232,4 +232,9 @@ export class Injector {
 		this.addComponent(name, callback);
 		return this;
 	}
+}
+
+
+export interface DependencyContainer{
+	get<T>(key:string):T|Promise<T>; 
 }

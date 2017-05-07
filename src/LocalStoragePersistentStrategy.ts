@@ -1,4 +1,8 @@
 import {PersistenceStrategy} from './PersistenceStrategy'; 
+/**
+ * Creates a persistence storage based on the localStorage. 
+ * @returns {PersistenceStrategy}
+ */
 export function localStorageStrategy():PersistenceStrategy{
     function get(key:string){
         return new Promise((resolve,reject)=>{

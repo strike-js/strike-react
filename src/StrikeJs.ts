@@ -1,23 +1,29 @@
-import {Store} from './Store';
-import {WorkerMiddleware} from './WorkerMiddleware';
-import {Promisify} from './PromisifyMiddleware';
+import {createStore} from './Store';
+import {PromisifyMiddleware} from './PromisifyMiddleware';
 import {Injector} from './Injector';
-import {ControllerView} from './ControllerView';
-import {IntegerPromisifer} from './IntegerPromisifyMiddleware';
+import {createControllerView} from './ControllerView';
 import {Injectable} from './InjectableMiddleware';
 import {localStorageStrategy} from './LocalStoragePersistentStrategy';
+import {createManagedState} from './ManagedState'; 
+import {createPool} from './Pool'; 
+import {WebSocketMiddleware} from './WebsocketMiddleware';
+import {WorkerMiddleware,MultiWorkerMiddleware} from './WorkerMiddleware';  
+
 
 (function(){
     if (window && document){
         (window as any).StrikeJS = {
-            Store,
+            createStore,
+            createPool,
             WorkerMiddleware,
-            ControllerView,
+            MultiWorkerMiddleware,
+            createControllerView,
+            createManagedState,
             localStorageStrategy,
             Injector,
-            Promisify,
-            IntegerPromisifer,
+            PromisifyMiddleware,
+            WebSocketMiddleware,
             Injectable
-        }
+        };
     }
 }());

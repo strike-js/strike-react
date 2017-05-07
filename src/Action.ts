@@ -1,5 +1,3 @@
-import {Store} from './Store';
-
 /**
  * Represents an action triggered with-in the application.
  * 

@@ -1,6 +1,6 @@
-import {Middleware} from './Middleware';
+import {IMiddleware,IMiddlewareNext} from './Middleware';
 import {PromiseAction, Action, ServiceAction} from './Action';
-import {Store} from './Store';
+import {IStore} from './Store';
 import {Injector} from './Injector';
 /**
  * Creates a middleware that can handle {PromiseAction} 
@@ -9,11 +9,24 @@ import {Injector} from './Injector';
  * @param {Injector} injector an injector instance to use for dependency resolution. 
  * @returns {Middleware} a middleware.
  */
-export function Injectable(injector:Injector):Middleware{
-	return function (action:ServiceAction,store:Store):Action{
+export function Injectable(injector:Injector):IMiddleware{
+	function onFail(err:Error){
+		console.error(err,err.message,err.stack); 
+	}
+	return function (action:ServiceAction,store:IStore,next:IMiddlewareNext):Action{
 		if (typeof action.service === "undefined"){
-			return action;
+			next(action);
 		}
-		return injector.injectFunction(action.service);
+		if (typeof action.service === "function"){
+			let res = injector.injectFunction(action.service);
+			if (typeof res === "object" && 
+				typeof res.then === "function"){
+				res.then(next,onFail); 
+				return; 
+			}
+			next(res);
+			return;  
+		}
+		next(action); 
 	}
 }

@@ -1,24 +1,30 @@
 import {Injector} from './Injector'; 
 import {Injectable} from './InjectableMiddleware'; 
-import {IntegerPromisifer} from './IntegerPromisifyMiddleware'; 
-import {WorkerMiddleware} from './WorkerMiddleware';
-import {Promisify} from './PromisifyMiddleware';
-import {ControllerView} from './ControllerView';
-import {Store} from './Store';
+import {createPool} from './Pool'; 
+import {createManagedState} from './ManagedState'; 
+import {WorkerMiddleware,MultiWorkerMiddleware} from './WorkerMiddleware';
+import {PromisifyMiddleware} from './PromisifyMiddleware';
+import {createControllerView} from './ControllerView';
+import {createStore} from './Store';
+import {WebSocketMiddleware} from './WebsocketMiddleware'; 
 import {localStorageStrategy} from './LocalStoragePersistentStrategy';
 
-export {Store,Injector,Injectable,
-    IntegerPromisifer,WorkerMiddleware,
-    Promisify,ControllerView,localStorageStrategy}; 
-
+export {createStore,Injector,Injectable,
+    createManagedState,WorkerMiddleware,
+    createPool,MultiWorkerMiddleware,WebSocketMiddleware,
+    PromisifyMiddleware,createControllerView,
+    localStorageStrategy}; 
 
 (function(StrikeJS:any){
     StrikeJS.localStorageStrategy = localStorageStrategy; 
-    StrikeJS.Store = Store; 
-    StrikeJS.ControllerView = ControllerView;
-    StrikeJS.Promisify = Promisify; 
+    StrikeJS.createStore = createStore; 
+    StrikeJS.createControllerView = createControllerView;
+    StrikeJS.PromisifyMiddleware = PromisifyMiddleware; 
     StrikeJS.WorkerMiddleware = WorkerMiddleware; 
-    StrikeJS.IntegerPromisifier = IntegerPromisifer; 
+    StrikeJS.createPool = createPool; 
+    StrikeJS.createManagedState = createManagedState; 
     StrikeJS.Injectable = Injectable; 
     StrikeJS.Injector = Injector;
+    StrikeJS.MultiWorkerMiddleware = MultiWorkerMiddleware; 
+    StrikeJS.WebSocketMiddleware = WebSocketMiddleware; 
 }((window as any).StrikeJS = (window as any).StrikeJS || {}));
