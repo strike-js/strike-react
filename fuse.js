@@ -15,7 +15,7 @@ const fuseBox = FuseBox.init({
 
 fuseBox.devServer('>examples/Basic.tsx',{
     // httpServer:false,
-    port:8989
+    port:3232
 });
 
 // fuseBox.bundle('>index.tsx');

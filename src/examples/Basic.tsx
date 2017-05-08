@@ -88,7 +88,8 @@ const CV = createControllerView({
     stateKey:'basic'
 
 });
-ReactDOM.render(<CV store={store} injector={null} persistenceStrategy={cx} />,div);
+ReactDOM.render(<CV store={store} injector={null} 
+persistenceStrategy={cx} />,div);
 
 var i = 0; 
 

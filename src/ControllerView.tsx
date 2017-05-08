@@ -75,16 +75,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			store = props.store; 
 			injector = props.injector; 
 			propsObject.store = props.store;
-			if (propsToPropagate && 
-				propsToPropagate instanceof Array){
-				propsToPropagate.forEach((e)=>{
-					propsObject[e] = props[e]; 
-				});
-			}
-			if (propsModifier && 
-				typeof propsModifier === "function"){
-				propsModifier<W>(props,propsObject); 
-			}
+			this.propagateProps(props); 
 			
 			if (deps){
 				if (deps instanceof Array){
@@ -99,15 +90,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			}
 		}
 
-		getStateKey(){
-			return stateKey; 
-		}
-
-		getReducer(){
-			return reducer; 
-		}
-
-		componentWillReceiveProps(props){
+		propagateProps(props:W){
 			if (propsToPropagate && 
 				propsToPropagate instanceof Array){
 				propsToPropagate.forEach((e)=>{
@@ -118,6 +101,19 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 				typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
+			(propsObject as any).routeParams = (props as any).routeParams;
+		}
+
+		getStateKey(){
+			return stateKey; 
+		}
+
+		getReducer(){
+			return reducer; 
+		}
+
+		componentWillReceiveProps(props){
+			this.propagateProps(props); 
 		}
 
 		componentDidMount(){
@@ -190,8 +186,6 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 
 		render(){
 			propsObject.data = this.state; 
-			(propsObject as any).routeParams = (this.props as any).routeParams;
-			propsModifier && propsModifier(this.props,propsObject);
 			return React.createElement(component as any,
 				propsObject,
 				this.props.children); 
