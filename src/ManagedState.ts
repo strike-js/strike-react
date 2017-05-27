@@ -52,6 +52,10 @@ export interface IManagedState {
 	 */
 	hasChanges():boolean; 
 	/**
+	 * Apply multiple mutations to the state
+	 */
+	withMutations(cb:(state:IManagedState)=>void):void; 
+	/**
 	 * Returns the changes made to the managed state. 
 	 * @returns {Dictionary<any>} 
 	 */
@@ -90,6 +94,10 @@ export function createManagedState<X>(s?:X):IManagedState{
 			$set(key,v);  
 		}
 		return o; 
+	}
+
+	function withMutations(cb){
+		cb(o); 
 	}
 
 	function $splice<T>(key:string,index:number,count:number=1,...args:any[]):IManagedState{
@@ -158,6 +166,7 @@ export function createManagedState<X>(s?:X):IManagedState{
 		$shift,
 		$unshift,
 		$get,
+		withMutations,
 		hasChanges,
 		changes
 	};
