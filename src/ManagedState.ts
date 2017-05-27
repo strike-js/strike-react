@@ -21,6 +21,26 @@ export interface IManagedState {
 	 */
 	$get<T>(key:string):T;
 	/**
+	 * Push a new element to a specific attribute 
+	 */
+	$push(key:string):this; 
+	/**
+	 * Removes an element from the beginning of an array 
+	 */
+	$shift(key:string):this; 
+	/**
+	 * Adds an item to the beginning of an array
+	 */
+	$unshift<T>(key:string,val:T):this; 
+	/**
+	 * Remoes an element from the end of an array
+	 */
+	$pop(key:string):this; 
+	/**
+	 * Removes an element at a specific position 
+	 */
+	$splice(key:string,index:number,count?:number,...args:any[]); 
+	/**
 	 * Sets the state object managed by this managed state. 
 	 * @param {any} st the new state. 
 	 * @returns {IManagedState} the managed state instance. 
@@ -50,7 +70,7 @@ export function createManagedState<X>(s?:X):IManagedState{
 	let o:IManagedState; 
 	let _hasChanges = false; 
 
-	function $set<T>(key:string,val:T){
+	function $set<T>(key:string,val:T):IManagedState{
 		if (state[key] !== val){
 			_changes[key] = val; 
 			_hasChanges = true;
@@ -61,6 +81,58 @@ export function createManagedState<X>(s?:X):IManagedState{
 	function $get<T>(key:string){
 		return state[key]; 
 	}
+
+	function $push(key:string,...args:any[]):IManagedState{
+		let data = state[key]; 
+		if (data && data.push && data.slice){
+			let v = data.slice(0); 
+			v.push(...args); 
+			$set(key,v);  
+		}
+		return o; 
+	}
+
+	function $splice<T>(key:string,index:number,count:number=1,...args:any[]):IManagedState{
+		let data = state[key]; 
+		if (data && data.splice && data.slice){
+			let v = data.slice(0); 
+			v.splice(index,count,...args); 
+			$set(key,v);  
+		}
+		return o; 
+	}
+
+	function $shift(key:string):IManagedState{
+		let data = state[key]; 
+		if (data && data.shift && data.slice){
+			let v = data.slice(0); 
+			v.shift(); 
+			$set(key,v); 
+		}
+		return o; 
+	}
+
+	function $unshift<T>(key:string,val:T):IManagedState{
+		let data = state[key]; 
+		if (data && data.unshift && data.slice){
+			let v = data.slice(0); 
+			v.unshift(val); 
+			$set(key,v);
+		}
+		return o; 
+	}
+
+	function $pop(key:string):IManagedState{
+		let data = state[key]; 
+		if (data && data.pop && data.slice){
+			let v = data.slice(0); 
+			v.pop(); 
+			$set(key,v); 
+		}
+		return o; 
+	}
+
+
 
 	function setState(st:X){
 		_hasChanges = false; 
@@ -80,6 +152,11 @@ export function createManagedState<X>(s?:X):IManagedState{
 	o = {
 		setState,
 		$set,
+		$push,
+		$splice,
+		$pop,
+		$shift,
+		$unshift,
 		$get,
 		hasChanges,
 		changes
