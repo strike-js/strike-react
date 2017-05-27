@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Action} from './Action'; 
-import {IStore,StoreCfg} from './Store'; 
+import {IStore,StoreCfg,ActionReceiver} from './Store'; 
 import {IManagedState} from './ManagedState'; 
 import {DependencyContainer} from './Injector'; 
 import {IMiddleware,IMiddlewareNext} from './Middleware'; 
@@ -19,6 +19,13 @@ export interface ControllerProps<V>{
 	 * The store of the application.
 	 */
 	store:IStore; 
+
+	/**
+	 * Dispatches an action within the store. 
+	 * @param {Action} action the action to dispatch. 
+	 * @throws {Error} if no action is provided 
+	 */
+	dispatch(action:Action|Promise<Action>|ActionReceiver):void; 
 }
 
 /**
@@ -66,6 +73,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 	var propsObject:ControllerProps<V> = {
 		data:null,
 		store:null,
+		dispatch:null
 	}; 
 
 	return class extends React.Component<W,V>{
@@ -75,6 +83,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			store = props.store; 
 			injector = props.injector; 
 			propsObject.store = props.store;
+			propsObject.dispatch = store.dispatch;
 			this.propagateProps(props); 
 			
 			if (deps){
@@ -101,6 +110,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 				typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
+			propsObject.dispatch = store.dispatch; 
 			(propsObject as any).routeParams = (props as any).routeParams;
 		}
 
