@@ -291,6 +291,9 @@ declare module "strikejs-react" {
         public register():Injector;
     }
 
+    export interface Dictionary<T>{
+        [idx:string]:T;
+    }
 
     export interface DependencyContainer{
         get<T>(key:string):T|Promise<T>; 
