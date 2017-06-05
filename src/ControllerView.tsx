@@ -126,8 +126,11 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			this.propagateProps(props); 
 		}
 
-		componentDidMount(){
+		componentWillMount(){
 			store.connect<T,V>(this);
+		}
+
+		componentDidMount(){
 			const persistenceStrategy = this.props.persistenceStrategy; 
 			if (persistenceStrategy){
 				if (typeof persistenceStrategy === "function"){
