@@ -6,6 +6,8 @@ import {DependencyContainer} from './Injector';
 import {IMiddleware,IMiddlewareNext} from './Middleware'; 
 import {PersistenceStrategy,FunctionalPersistenceStrategy} from './PersistenceStrategy'; 
 
+export type RouteParams = Dictionary<any> & {test(path:string):any,path:string,route:string};
+
 /**
  * Properties that will be passed to the wrapped controller components. 
  * The state of the wrapping component will be passed inside `data`. 
@@ -26,6 +28,19 @@ export interface ControllerProps<V>{
 	 * @throws {Error} if no action is provided 
 	 */
 	dispatch(action:Action|Promise<Action>|ActionReceiver):void; 
+
+
+	routeParams?:RouteParams; 
+
+	dataStore?:DataStore; 
+}
+
+/**
+ * Data store 
+ */
+export interface DataStore {
+	get(key:string):any; 
+	set(key:string,val:any):any;
 }
 
 /**
@@ -45,6 +60,10 @@ export interface ControllerViewProps<T> {
 
 	injector:DependencyContainer; 
 
+	dataStore?:DataStore;
+
+	routeParams?:RouteParams; 
+
 }
 
 export interface FunctionalComponent<T>{
@@ -58,6 +77,7 @@ export interface ControllerViewConfig<T,V> {
 	component:React.ComponentClass<T>|FunctionalComponent<T>;
 	deps?:string[]|Dictionary<string>;
 	propsToPropagate?:string[];
+	initializer?<W extends ControllerViewProps<V>>(props:W,state:V):V; 
 	propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
 }
 
@@ -67,6 +87,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 	initialState,
 	deps,propsModifier,
 	propsToPropagate,
+	initializer,
 	stateKey}:ControllerViewConfig<T,V>){
 	var store:IStore = null; 
 	var injector:DependencyContainer = null; 
@@ -80,13 +101,16 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		constructor(props:W){
 			super(props); 
 			this.state = initialState; 
+			
 			store = props.store; 
 			injector = props.injector; 
 			propsObject.store = props.store;
-			propsObject.dispatch = store.dispatch;
+			propsObject.dataStore = props.dataStore; 
+			propsObject.dispatch = store.dispatch; 
+			propsObject.dataStore = props.dataStore; 
 			this.propagateProps(props); 
 			
-			if (deps){
+			if (deps && injector){
 				if (deps instanceof Array){
 					deps.forEach((e)=>{
 						propsObject[e] = injector.get(e)
@@ -100,6 +124,9 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		}
 
 		propagateProps(props:W){
+			if (initializer){
+				this.state = initializer(props,this.state); 
+			}
 			if (propsToPropagate && 
 				propsToPropagate instanceof Array){
 				propsToPropagate.forEach((e)=>{
@@ -110,8 +137,8 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 				typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
-			propsObject.dispatch = store.dispatch; 
-			(propsObject as any).routeParams = (props as any).routeParams;
+			
+			propsObject.routeParams = props.routeParams;
 		}
 
 		getStateKey(){

@@ -3,6 +3,12 @@ declare module "strikejs-react" {
     import * as React from 'react';
 
     /**
+     * Routing params to be propagated if found
+     */
+    export type RouteParams = Dictionary<any> & {test(path:string):any,path:string,route:string};
+
+
+    /**
      * Extracts the names of the parameters from functions
      * 
      * @export
@@ -91,7 +97,14 @@ declare module "strikejs-react" {
         $inject:string[]; 
     }
 
-    
+    /**
+     * Data store 
+     */
+    export interface DataStore {
+        get(key:string):any; 
+        set(key:string,val:any):any;
+    }
+
     /**
      * Properties that will be passed to the wrapped controller components. 
      * The state of the wrapping component will be passed inside `data`. 
@@ -113,7 +126,9 @@ declare module "strikejs-react" {
          */
         dispatch(action:Action|Promise<Action>|ActionReceiver):void;
 
-        routeParams?:Dictionary<any>; 
+        routeParams?:RouteParams; 
+
+        dataStore?:DataStore; 
     }
 
     /**
@@ -133,6 +148,10 @@ declare module "strikejs-react" {
 
         injector:DependencyContainer; 
 
+        dataStore?:DataStore; 
+
+        routeParams?:RouteParams;
+
     }
 
     export interface FunctionalComponent<T>{
@@ -146,6 +165,7 @@ declare module "strikejs-react" {
         component:React.ComponentClass<T>|FunctionalComponent<T>;
         deps?:string[]|Dictionary<string>;
         propsToPropagate?:string[];
+        initializer?<W extends ControllerViewProps<V>>(props:W,state:V):V; 
         propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
     }
 
