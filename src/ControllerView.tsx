@@ -33,6 +33,8 @@ export interface ControllerProps<V>{
 	routeParams?:RouteParams; 
 
 	dataStore?:DataStore; 
+
+	router?:any;
 }
 
 /**
@@ -63,6 +65,8 @@ export interface ControllerViewProps<T> {
 	dataStore?:DataStore;
 
 	routeParams?:RouteParams; 
+
+	router?:any;
 
 }
 
@@ -107,7 +111,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			propsObject.store = props.store;
 			propsObject.dataStore = props.dataStore; 
 			propsObject.dispatch = store.dispatch; 
-			propsObject.dataStore = props.dataStore; 
+			propsObject.router = props.router; 
 			this.propagateProps(props); 
 			
 			if (deps && injector){
