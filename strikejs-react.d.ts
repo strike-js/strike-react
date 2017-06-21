@@ -129,6 +129,8 @@ declare module "strikejs-react" {
         routeParams?:RouteParams; 
 
         dataStore?:DataStore; 
+
+        router?:any;
     }
 
     /**
@@ -151,6 +153,8 @@ declare module "strikejs-react" {
         dataStore?:DataStore; 
 
         routeParams?:RouteParams;
+
+        router?:any;
 
     }
 
