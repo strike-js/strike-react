@@ -23,11 +23,11 @@ export interface IManagedState {
 	/**
 	 * Push a new element to a specific attribute 
 	 */
-	$push(key:string):this; 
+	$push(key:string,...args:any[]):this; 
 	/**
 	 * Removes an element from the beginning of an array 
 	 */
-	$shift(key:string):this; 
+	$shift<T>(key:string):T; 
 	/**
 	 * Adds an item to the beginning of an array
 	 */
@@ -35,7 +35,7 @@ export interface IManagedState {
 	/**
 	 * Remoes an element from the end of an array
 	 */
-	$pop(key:string):this; 
+	$pop<T>(key:string):T;
 	/**
 	 * Removes an element at a specific position 
 	 */
@@ -110,14 +110,15 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return o; 
 	}
 
-	function $shift(key:string):IManagedState{
+	function $shift<T>(key:string):T{
 		let data = state[key]; 
 		if (data && data.shift && data.slice){
 			let v = data.slice(0); 
-			v.shift(); 
+			var temp = v.shift(); 
 			$set(key,v); 
+			return temp; 
 		}
-		return o; 
+		return;  
 	}
 
 	function $unshift<T>(key:string,val:T):IManagedState{
@@ -130,14 +131,15 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return o; 
 	}
 
-	function $pop(key:string):IManagedState{
+	function $pop<T>(key:string):T{
 		let data = state[key]; 
 		if (data && data.pop && data.slice){
 			let v = data.slice(0); 
-			v.pop(); 
+			var temp = v.pop(); 
 			$set(key,v); 
+			return temp; 
 		}
-		return o; 
+		return;
 	}
 
 

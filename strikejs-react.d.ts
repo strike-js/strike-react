@@ -349,11 +349,11 @@ declare module "strikejs-react" {
         /**
          * Push a new element to a specific attribute 
          */
-        $push(key:string):this; 
+        $push(key:string,...args:any[]):this; 
         /**
          * Removes an element from the beginning of an array 
          */
-        $shift(key:string):this; 
+        $shift<T>(key:string):T; 
         /**
          * Adds an item to the beginning of an array
          */
@@ -361,7 +361,7 @@ declare module "strikejs-react" {
         /**
          * Remoes an element from the end of an array
          */
-        $pop(key:string):this; 
+        $pop<T>(key:string):T;
         /**
          * Removes an element at a specific position 
          */
