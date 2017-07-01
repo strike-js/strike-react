@@ -7,6 +7,6 @@ import {IManagedState} from './ManagedState';
  * @export
  * @interface Reducer
  */
-export interface Reducer{
-	(state:IManagedState,action:Action):void; 
+export interface Reducer<V>{
+	(state:IManagedState<V>,action:Action):void; 
 }

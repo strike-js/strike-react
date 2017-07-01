@@ -6,40 +6,40 @@ declare global {
 /**
  * Represents an internal state used by the state container to emulate immutability. 
  */
-export interface IManagedState {
+export interface IManagedState<V> {
 	/**
 	 * Sets a specific attribute on the state. 
 	 * @param {string} key the key to set its value. 
 	 * @param {any} val the value of the state. 
 	 * @returns {IManagedState} the managed state instance. Useful for chaining changes. 
 	 */
-	$set<T>(key:string,val:T):this;
+	$set<T>(key:keyof V,val:T):this;
 	/**
 	 * Gets a specific attribute in the state. 
 	 * @param {string} key the key to get its value. 
 	 * @returns {any} the value at the provided key. 
 	 */
-	$get<T>(key:string):T;
+	$get<T>(key:keyof V):T;
 	/**
 	 * Push a new element to a specific attribute 
 	 */
-	$push(key:string,...args:any[]):this; 
+	$push(key:keyof V,...args:any[]):this; 
 	/**
 	 * Removes an element from the beginning of an array 
 	 */
-	$shift<T>(key:string):T; 
+	$shift<T>(key:keyof V):T; 
 	/**
 	 * Adds an item to the beginning of an array
 	 */
-	$unshift<T>(key:string,val:T):this; 
+	$unshift<T>(key:keyof V,val:T):this; 
 	/**
 	 * Remoes an element from the end of an array
 	 */
-	$pop<T>(key:string):T;
+	$pop<T>(key:keyof V):T;
 	/**
 	 * Removes an element at a specific position 
 	 */
-	$splice(key:string,index:number,count?:number,...args:any[]); 
+	$splice(key:keyof V,index:number,count?:number,...args:any[]); 
 	/**
 	 * Sets the state object managed by this managed state. 
 	 * @param {any} st the new state. 
@@ -54,7 +54,7 @@ export interface IManagedState {
 	/**
 	 * Apply multiple mutations to the state
 	 */
-	withMutations(cb:(state:IManagedState)=>void):void; 
+	withMutations(cb:(state:IManagedState<V>)=>void):void; 
 	/**
 	 * Returns the changes made to the managed state. 
 	 * @returns {Dictionary<any>} 
@@ -68,13 +68,13 @@ export interface IManagedState {
  * @param {any} s the initial state to manage 
  * @returns {IManagedState} 
  */
-export function createManagedState<X>(s?:X):IManagedState{
-	let state:X = s || null; 
+export function createManagedState<V>(s?:Dictionary<any>):IManagedState<V>{
+	let state:Dictionary<any> = s || null; 
 	let _changes:Dictionary<any> = {};
-	let o:IManagedState; 
+	let o:IManagedState<V>; 
 	let _hasChanges = false; 
 
-	function $set<T>(key:string,val:T):IManagedState{
+	function $set<T>(key:keyof V,val:T):IManagedState<V>{
 		if (state[key] !== val){
 			_changes[key] = val; 
 			_hasChanges = true;
@@ -82,12 +82,12 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return o; 
 	}
 
-	function $get<T>(key:string){
+	function $get<T>(key:keyof V){
 		return state[key]; 
 	}
 
-	function $push(key:string,...args:any[]):IManagedState{
-		let data = state[key]; 
+	function $push(key:keyof V,...args:any[]):IManagedState<V>{
+		let data:any = state[key]; 
 		if (data && data.push && data.slice){
 			let v = data.slice(0); 
 			v.push(...args); 
@@ -100,8 +100,8 @@ export function createManagedState<X>(s?:X):IManagedState{
 		cb(o); 
 	}
 
-	function $splice<T>(key:string,index:number,count:number=1,...args:any[]):IManagedState{
-		let data = state[key]; 
+	function $splice<T>(key:keyof V,index:number,count:number=1,...args:any[]):IManagedState<V>{
+		let data:any = state[key]; 
 		if (data && data.splice && data.slice){
 			let v = data.slice(0); 
 			v.splice(index,count,...args); 
@@ -110,8 +110,8 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return o; 
 	}
 
-	function $shift<T>(key:string):T{
-		let data = state[key]; 
+	function $shift<T>(key:keyof V):T{
+		let data:any = state[key]; 
 		if (data && data.shift && data.slice){
 			let v = data.slice(0); 
 			var temp = v.shift(); 
@@ -121,8 +121,8 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return;  
 	}
 
-	function $unshift<T>(key:string,val:T):IManagedState{
-		let data = state[key]; 
+	function $unshift<T>(key:keyof V,val:T):IManagedState<V>{
+		let data:any = state[key]; 
 		if (data && data.unshift && data.slice){
 			let v = data.slice(0); 
 			v.unshift(val); 
@@ -131,8 +131,8 @@ export function createManagedState<X>(s?:X):IManagedState{
 		return o; 
 	}
 
-	function $pop<T>(key:string):T{
-		let data = state[key]; 
+	function $pop<T>(key:keyof V):T{
+		let data:any = state[key]; 
 		if (data && data.pop && data.slice){
 			let v = data.slice(0); 
 			var temp = v.pop(); 
@@ -144,7 +144,7 @@ export function createManagedState<X>(s?:X):IManagedState{
 
 
 
-	function setState(st:X){
+	function setState(st:Dictionary<any>){
 		_hasChanges = false; 
 		_changes = {};
 		state = st; 

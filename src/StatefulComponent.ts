@@ -25,7 +25,7 @@ export interface StatefulComponent<V,T> {
      * Returns the reducer of the component. This is used internally by the state container. 
      * @returns {Reducer} 
      */
-    getReducer():Reducer;
+    getReducer():Reducer<V>;
     /**
      * The state of the component 
      */
