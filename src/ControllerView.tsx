@@ -74,14 +74,13 @@ export interface FunctionalComponent<T>{
 	(props:T):React.ReactElement<T>; 
 }
 
-export interface ControllerViewConfig<T,V> {
+export interface ControllerViewConfig<T,V,W> {
 	reducer?(state:any,action:Action):void;
-	initialState:V;
+	initialState?:V|((props:W)=>V);
 	stateKey:string;
 	component:React.ComponentClass<T>|FunctionalComponent<T>;
 	deps?:string[]|Dictionary<string>;
 	propsToPropagate?:string[];
-	initializer?<W extends ControllerViewProps<V>>(props:W,state:V):V; 
 	propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
 }
 
@@ -91,8 +90,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 	initialState,
 	deps,propsModifier,
 	propsToPropagate,
-	initializer,
-	stateKey}:ControllerViewConfig<T,V>){
+	stateKey}:ControllerViewConfig<T,V,W>){
 	var store:IStore = null; 
 	var injector:DependencyContainer = null; 
 	var propsObject:ControllerProps<V> = {
@@ -104,7 +102,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 	return class extends React.Component<W,V>{
 		constructor(props:W){
 			super(props); 
-			this.state = initialState; 
+			this.state = typeof initialState === "function"?initialState(props):initialState; 
 			
 			store = props.store; 
 			injector = props.injector; 
@@ -128,17 +126,12 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		}
 
 		propagateProps(props:W){
-			if (initializer){
-				this.state = initializer(props,this.state); 
-			}
-			if (propsToPropagate && 
-				propsToPropagate instanceof Array){
+			if (propsToPropagate instanceof Array){
 				propsToPropagate.forEach((e)=>{
 					propsObject[e] = props[e]; 
 				});
 			}
-			if (propsModifier && 
-				typeof propsModifier === "function"){
+			if (typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
 			

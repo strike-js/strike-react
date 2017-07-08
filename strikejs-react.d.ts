@@ -162,18 +162,17 @@ declare module "strikejs-react" {
         (props:T):React.ReactElement<T>; 
     }
 
-    export interface ControllerViewConfig<T,V> {
+    export interface ControllerViewConfig<T,V,W> {
         reducer?(state:any,action:Action):void;
-        initialState:V;
+        initialState?:V|((props:W)=>V);
         stateKey:string;
         component:React.ComponentClass<T>|FunctionalComponent<T>;
         deps?:string[]|Dictionary<string>;
         propsToPropagate?:string[];
-        initializer?<W extends ControllerViewProps<V>>(props:W,state:V):V; 
         propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
     }
 
-    export function createControllerView<T extends ControllerProps<V>,V,W extends ControllerViewProps<V>>(cfg:ControllerViewConfig<T,V>);
+    export function createControllerView<T extends ControllerProps<V>,V,W extends ControllerViewProps<V>>(cfg:ControllerViewConfig<T,V,W>);
 
     /**
      * Creates a middleware that can handle {PromiseAction} 
