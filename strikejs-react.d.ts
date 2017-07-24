@@ -587,6 +587,14 @@ export interface IManagedState<V> {
     }
 
     /**
+     * A function that receives an action consumer {@link ActionConsume} which is 
+     * then called with an action. 
+     */
+    export interface ActionGenerator<V>{
+        (dispatch:(action:Action)=>void,getState:<T>(key:string)=>T,extra?:V);
+    }
+
+    /**
      * A state container store 
      */
     export interface IStore {
@@ -620,13 +628,16 @@ export interface IManagedState<V> {
          * @param {Action} action the action to dispatch. 
          * @throws {Error} if no action is provided 
          */
-        dispatch(action:Action|Promise<Action>|ActionReceiver):void;  
+        dispatch(action:Action):void;  
         /**
-         * Dispatches an action within the store. 
-         * @param {string} key the key to the specific state to be passed to the consumer
-         * @param {ActionHandler} handler a higher-order function that receives the specific part of the state. 
+         * Passes the dispatch fn to an action generator function 
+         * @param {ActionGenerator} actionGenerator the action generator to dispatch 
          */
-        dispatch<T>(key:string,action:ActionHandler<T>):void; 
+        dispatch<V>(actionGenerator:ActionGenerator<V>,extra?:V):void;
+        /**
+         * Passes a state key to be passed as the extra parameter for the action generator 
+         */
+        dispatch<V>(key:string,fn:ActionGenerator<V>):void; 
         /**
          * Sets the store to be ready to execute actions. 
          */

@@ -17,8 +17,8 @@ export interface ActionConsumer {
  * A function that receives an action consumer {@link ActionConsume} which is 
  * then called with an action. 
  */
-export interface ActionReceiver{
-	(fn:ActionConsumer):void;
+export interface ActionGenerator<V>{
+	(dispatch:(action:Action)=>void,getState:<T>(key:string)=>T,extra?:V);
 }
 
 /**
@@ -40,13 +40,6 @@ export interface StoreCfg {
 	 * @description an array of middlewares to add to the store. 
 	 */
 	middlewares?:IMiddleware[];
-}
-
-/**
- * An action handler interface 
- */
-export interface ActionHandler<T> {
-	(data:T):Action|ActionReceiver|Promise<Action>;
 }
 
 /**
@@ -83,13 +76,16 @@ export interface IStore {
 	 * @param {Action} action the action to dispatch. 
 	 * @throws {Error} if no action is provided 
 	 */
-	dispatch(action:Action|Promise<Action>|ActionReceiver):void;  
+	dispatch(action:Action):void;  
 	/**
-	 * Dispatches an action within the store. 
-	 * @param {string} key the key to the specific state to be passed to the consumer
-	 * @param {ActionHandler} handler a higher-order function that receives the specific part of the state. 
+	 * Passes the dispatch fn to an action generator function 
+	 * @param {ActionGenerator} actionGenerator the action generator to dispatch 
 	 */
-	dispatch<T>(key:string,action:ActionHandler<T>):void; 
+	dispatch<V>(actionGenerator:ActionGenerator<V>,extra?:V):void;
+	/**
+	 * Passes a state key to be passed as the extra parameter for the action generator 
+	 */
+	dispatch<V>(key:string,fn:ActionGenerator<V>):void; 
 	/**
 	 * Sets the store to be ready to execute actions. 
 	 */
@@ -123,7 +119,7 @@ export function createStore(cfg:StoreCfg):IStore{
 	}
 
 	function getStateAt<T>(key:string){
-		return components[key].state; 
+		return components[key] && components[key].state; 
 	}
 
 	function setStateAt<T>(key:string,val:T):IStore{
@@ -188,8 +184,9 @@ export function createStore(cfg:StoreCfg):IStore{
 		console.log(err,err.message,err.stack);
 	}
 
-	function dispatch(action:ActionReceiver|Action|Promise<Action>):void;
-	function dispatch<T>(key:string,action:ActionHandler<T>):void;
+	function dispatch(action:Action):void;
+	function dispatch<T>(generator:ActionGenerator<T>,extra?:T):void;
+	function dispatch<T>(key:string,generator:ActionGenerator<T>):void;
 	function dispatch(...args:any[]){
 		if (!isReady){
 			queue.push(Array.prototype.slice.call(args,0));
@@ -199,13 +196,9 @@ export function createStore(cfg:StoreCfg):IStore{
 			throw new Error(`No action provided`); 
 		}else if (args.length === 1){
 			if (typeof args[0] === "function"){
-				args[0](onAction);
+				args[0](dispatch,getStateAt);
 			}else if (typeof args[0] === "object"){
-				if (args[0].type){
-					onAction(args[0]);
-				}else if (args[0].then && typeof args[0].then === "function"){
-					args[0].then(onAction,onActionFail);
-				}
+				onAction(args[0]);
 			}
 		}else if (args.length === 2){
 			if ((typeof args[0] === "string" || 
@@ -215,16 +208,12 @@ export function createStore(cfg:StoreCfg):IStore{
 					type:args[0],
 					data:args[1]
 				});
-			} else if (typeof args[0] === "string" && 
+			} else if (typeof args[0] === "string" &&
 				typeof args[1] === "function"){
-				let st = components[args[0]] && components[args[0]].state; 
-				let a = args[1](st,onAction);
-				if (a && a.type){
-					onAction(a);
-				}else if (typeof a === "object" && 
-					typeof a.then === "function"){
-					a.then(onAction,onActionFail); 
-				}
+				let st = getStateAt(args[0]); 
+				args[1](dispatch,getStateAt,st);
+			} else if (typeof args[0] === "function"){
+				args[0](dispatch,getStateAt,args[1]); 
 			}
 		}
 	}
