@@ -118,13 +118,12 @@ declare module "strikejs-react" {
          * The store of the application.
          */
         store:IStore; 
-
+ 
         /**
-         * Dispatches an action within the store. 
-         * @param {Action} action the action to dispatch. 
-         * @throws {Error} if no action is provided 
+         * Passes the dispatch fn to an action generator function 
+         * @param {ActionGenerator} actionGenerator the action generator to dispatch 
          */
-        dispatch(action:Action|Promise<Action>|ActionReceiver):void;
+        dispatch<V>(actionGenerator:Action|ActionGenerator<V>,extra?:V):void;
 
         routeParams?:RouteParams; 
 
@@ -542,22 +541,6 @@ export interface IManagedState<V> {
         state:T; 
     }
 
-    
-    /**
-     * A function that consumes an {@link Action}
-     */
-    export interface ActionConsumer {
-        (action:Action):void; 
-    }
-
-    /**
-     * A function that receives an action consumer {@link ActionConsume} which is 
-     * then called with an action. 
-     */
-    export interface ActionReceiver{
-        (fn:ActionConsumer):void;
-    }
-
     /**
      * Represents store configuration options 
      */
@@ -577,13 +560,6 @@ export interface IManagedState<V> {
          * @description an array of middlewares to add to the store. 
          */
         middlewares?:IMiddleware[];
-    }
-
-    /**
-     * An action handler interface 
-     */
-    export interface ActionHandler<T> {
-        (data:T):Action|ActionReceiver|Promise<Action>;
     }
 
     /**
