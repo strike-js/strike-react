@@ -567,7 +567,7 @@ export interface IManagedState<V> {
      * then called with an action. 
      */
     export interface ActionGenerator<V>{
-        (dispatch:(action:Action)=>void,getState:<T>(key:string)=>T,extra?:V);
+        (dispatch:(action:Action|ActionGenerator<any>)=>void,getState:<T>(key:string)=>T,extra?:V);
     }
 
     /**

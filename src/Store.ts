@@ -107,6 +107,8 @@ export function createStore(cfg:StoreCfg):IStore{
 	let o:IStore = null;
 	let queue:Action[] = [];
 	let pool = createPool(createManagedState); 
+	let pendingChanges = {}; 
+	let waitingQueue = {}; 
 
 	function connect<T,V>(el:StatefulComponent<T,V>):IStore{
 		components[el.getStateKey()] = el; 
@@ -115,6 +117,8 @@ export function createStore(cfg:StoreCfg):IStore{
 
 	function disconnect<T,V>(el:StatefulComponent<T,V>):IStore{
 		delete components[el.getStateKey()]; 
+		delete waitingQueue[el.getStateKey()];
+		delete pendingChanges[el.getStateKey()]; 
 		return o;
 	}
 
@@ -146,23 +150,55 @@ export function createStore(cfg:StoreCfg):IStore{
 		next(action); 
 	}
 
+	function hasPendingChanges(key:string){
+		return pendingChanges[key]; 
+	}
+
+	function doneExecute(key){
+		if (waitingQueue[key] && waitingQueue[key].length){
+			waitingQueue[key].shift()(); 
+			return; 
+		}
+		pendingChanges[key] = false; 
+	}
+	
+	function doExecute(key,action){
+		let managedState = pool.get();
+		let component = components[key]; 
+		managedState.setState(component.state); 
+		let rd = component.getReducer();
+		if (rd){
+			rd(managedState,action);
+			if (managedState.hasChanges()){
+				var changes = managedState.changes(); 
+				pendingChanges[key] = true; 
+				component.setState(()=>changes,()=>{
+					doneExecute(key);
+				});
+			}
+		}
+		pool.put(managedState);
+	}
+
+	function whenReady(key,action){
+		waitingQueue[key] = waitingQueue[key] || []; 
+		waitingQueue[key].push(()=>{
+			doExecute(key,action); 
+		});
+	}
+
 	function execute(action){
 		if (action){
 			if (trackChanges){
 				backlog.push(action);
 			}
-			let managedState = pool.get();
 			for(var key in components){
-				managedState.setState(components[key].state); 
-				let rd = components[key].getReducer();
-				if (rd){
-					rd(managedState,action);
-					if (managedState.hasChanges){
-						components[key].setState(managedState.changes());
-					}
+				if (hasPendingChanges(key)){
+					whenReady(key,action);
+					return; 
 				}
+				doExecute(key,action); 
 			}
-			pool.put(managedState);
 		}
 	}
 
