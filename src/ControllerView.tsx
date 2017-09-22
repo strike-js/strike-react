@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {Action} from './Action'; 
-import {IStore,StoreCfg,ActionReceiver} from './Store'; 
+import { IStore, StoreCfg, ActionGenerator } from './Store'; 
 import {IManagedState} from './ManagedState'; 
 import {DependencyContainer} from './Injector'; 
 import {IMiddleware,IMiddlewareNext} from './Middleware'; 
@@ -27,7 +27,7 @@ export interface ControllerProps<V>{
 	 * @param {Action} action the action to dispatch. 
 	 * @throws {Error} if no action is provided 
 	 */
-	dispatch(action:Action|Promise<Action>|ActionReceiver):void; 
+	dispatch(action:Action|Promise<Action>|ActionGenerator<any>):void; 
 
 
 	routeParams?:RouteParams; 
@@ -81,6 +81,7 @@ export interface ControllerViewConfig<T,V,W> {
 	component:React.ComponentClass<T>|FunctionalComponent<T>;
 	deps?:string[]|Dictionary<string>;
 	propsToPropagate?:string[];
+	propsToData?:(props:T,data:V)=>V;
 	propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
 }
 
@@ -90,6 +91,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 	initialState,
 	deps,propsModifier,
 	propsToPropagate,
+	propsToData, 
 	stateKey}:ControllerViewConfig<T,V,W>){
 	var store:IStore = null; 
 	var injector:DependencyContainer = null; 
@@ -126,6 +128,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		}
 
 		propagateProps(props:W){
+			propsObject.routeParams = props.routeParams;
 			if (propsToPropagate instanceof Array){
 				propsToPropagate.forEach((e)=>{
 					propsObject[e] = props[e]; 
@@ -134,8 +137,10 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			if (typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
+			// if (typeof propsToData === "function"){
+			// 	propsObject.data = propsToData(props,{routeParams:props.routeParams,...this.state});
+			// }
 			
-			propsObject.routeParams = props.routeParams;
 		}
 
 		getStateKey(){
@@ -222,7 +227,9 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		}
 
 		render(){
-			propsObject.data = this.state; 
+			var k = 
+			propsObject.data = typeof propsToData === "function"?({...(this.state || {} as  any),...(propsToData(propsObject as any,this.state) as any)}):this.state; 
+			
 			return React.createElement(component as any,
 				propsObject,
 				this.props.children); 

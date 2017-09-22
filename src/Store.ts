@@ -18,7 +18,7 @@ export interface ActionConsumer {
  * then called with an action. 
  */
 export interface ActionGenerator<V>{
-	(dispatch:(action:Action)=>void,getState:<T>(key:string)=>T,extra?:V);
+	(dispatch:(action:Action|ActionGenerator<any>)=>void,getState:<T>(key:string)=>T,extra?:V);
 }
 
 /**
@@ -111,7 +111,10 @@ export function createStore(cfg:StoreCfg):IStore{
 	let waitingQueue = {}; 
 
 	function connect<T,V>(el:StatefulComponent<T,V>):IStore{
-		components[el.getStateKey()] = el; 
+		var key = el.getStateKey(); 
+		components[key] = el; 
+		waitingQueue[key] = undefined; 
+		pendingChanges[key] = false; 
 		return o; 
 	} 
 
@@ -174,6 +177,7 @@ export function createStore(cfg:StoreCfg):IStore{
 				pendingChanges[key] = true; 
 				component.setState(()=>changes,()=>{
 					doneExecute(key);
+					action.onDone && action.onDone(); 
 				});
 			}
 		}
@@ -195,7 +199,7 @@ export function createStore(cfg:StoreCfg):IStore{
 			for(var key in components){
 				if (hasPendingChanges(key)){
 					whenReady(key,action);
-					return; 
+					continue; 
 				}
 				doExecute(key,action); 
 			}
