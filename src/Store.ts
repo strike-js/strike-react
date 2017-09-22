@@ -162,7 +162,7 @@ export function createStore(cfg:StoreCfg):IStore{
 			waitingQueue[key].shift()(); 
 			return; 
 		}
-		pendingChanges[key] = false; 
+		// pendingChanges[key] = false; 
 	}
 	
 	function doExecute(key,action){
@@ -176,6 +176,7 @@ export function createStore(cfg:StoreCfg):IStore{
 				var changes = managedState.changes(); 
 				pendingChanges[key] = true; 
 				component.setState(()=>changes,()=>{
+					pendingChanges[key] = false; 
 					doneExecute(key);
 					action.onDone && action.onDone(); 
 				});
