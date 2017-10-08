@@ -13,13 +13,18 @@ export interface ActionConsumer {
 	(action:Action):void; 
 }
 
-/**
- * A function that receives an action consumer {@link ActionConsume} which is 
- * then called with an action. 
- */
-export interface ActionGenerator<V>{
-	(dispatch:(action:Action|ActionGenerator<any>)=>void,getState:<T>(key:string)=>T,extra?:V);
-}
+// /**
+//  * A function that receives an action consumer {@link ActionConsume} which is 
+//  * then called with an action. 
+//  */
+// export interface ActionGenerator<V,T>{
+// 	(dispatch:(action:Action):T;
+// }
+
+
+export type Dispatcher<R> = <V>(dispatch:Dispatcher<any>,getState:StateGetter,extra?:V)=>R; 
+
+export type StateGetter = <T>(key:string)=>T; 
 
 /**
  * Represents store configuration options 
@@ -74,18 +79,24 @@ export interface IStore {
 	/**
 	 * Dispatches an action within the store. 
 	 * @param {Action} action the action to dispatch. 
+	 * @returns {Promise<void>} if promises are supported by the browser. 
+	 * The promise is resolved when the view is updated. Otherwise, returns `void`. 
 	 * @throws {Error} if no action is provided 
 	 */
-	dispatch(action:Action):void;  
+	dispatch(action:Action):Promise<void>|void;
+	/**
+	 * Dispatches an action within the store. 
+	 * @param {Action} action the action to dispatch. 
+	 * @param {function} cb a callback to be executed when the view has been updated. 
+	 * *Note*: The `onDone` function of the action is set to be the provided callback.  
+	 */
+	dispatch(action:Action,cb:()=>void):void;
+	
 	/**
 	 * Passes the dispatch fn to an action generator function 
-	 * @param {ActionGenerator} actionGenerator the action generator to dispatch 
+	 * @param {Dispatcher<R>} actionGenerator the action generator to dispatch 
 	 */
-	dispatch<V>(actionGenerator:ActionGenerator<V>,extra?:V):void;
-	/**
-	 * Passes a state key to be passed as the extra parameter for the action generator 
-	 */
-	dispatch<V>(key:string,fn:ActionGenerator<V>):void; 
+	dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
 	/**
 	 * Sets the store to be ready to execute actions. 
 	 */
@@ -179,22 +190,12 @@ export function createStore(cfg:StoreCfg):IStore{
 			rd(managedState,action);
 			if (managedState.hasChanges()){
 				var changes = managedState.changes(); 
-				// pendingChanges[key] = true; 
 				component.setState(()=>changes,()=>{
-					// pendingChanges[key] = false; 
-					// doneExecute(key);
-					action.onDone && action.onDone(); 
+					action.onDone && typeof action.onDone === "function" && action.onDone(); 
 				});
 			}
 		}
 		pool.put(managedState);
-	}
-
-	function whenReady(key,action){
-		waitingQueue[key] = waitingQueue[key] || []; 
-		waitingQueue[key].push(()=>{
-			doExecute(key,action); 
-		});
 	}
 
 	function execute(action){
@@ -203,10 +204,6 @@ export function createStore(cfg:StoreCfg):IStore{
 				backlog.push(action);
 			}
 			for(var key in components){
-				// if (hasPendingChanges(key)){
-				// 	whenReady(key,action);
-				// 	continue; 
-				// }
 				doExecute(key,action); 
 			}
 		}
@@ -220,7 +217,18 @@ export function createStore(cfg:StoreCfg):IStore{
 		}
 	}
 
-	function onAction(action:Action){
+	function onAction(action:Action,cb?:()=>void){
+		action.onDone = cb; 
+		if (!cb){
+			if (self.Promise){
+				return new Promise((res)=>{
+					action.onDone = res; 
+					let act = applyMiddleware(action,(finalAction)=>{
+						finalAction && execute(finalAction); 
+					}); 
+				});
+			}
+		}
 		let act = applyMiddleware(action,(finalAction)=>{
 			finalAction && execute(finalAction); 
 		}); 
@@ -230,36 +238,28 @@ export function createStore(cfg:StoreCfg):IStore{
 		console.log(err,err.message,err.stack);
 	}
 
-	function dispatch(action:Action):void;
-	function dispatch<T>(generator:ActionGenerator<T>,extra?:T):void;
-	function dispatch<T>(key:string,generator:ActionGenerator<T>):void;
+
+	function dispatch(action:Action):Promise<void>|void;
+	function dispatch(action:Action,cb:()=>void):void;
+	function dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
 	function dispatch(...args:any[]){
-		if (!isReady){
-			queue.push(Array.prototype.slice.call(args,0));
-			return;
-		}
+		// if (!isReady){
+		// 	queue.push(Array.prototype.slice.call(args,0));
+		// 	return;
+		// }
 		if (args.length === 0){
 			throw new Error(`No action provided`); 
 		}else if (args.length === 1){
 			if (typeof args[0] === "function"){
-				args[0](dispatch,getStateAt);
+				return args[0](dispatch,getStateAt);
 			}else if (typeof args[0] === "object"){
-				onAction(args[0]);
+				return onAction(args[0]);
 			}
 		}else if (args.length === 2){
-			if ((typeof args[0] === "string" || 
-				typeof args[0] === "number") && 
-				typeof args[1] !== "object") {
-				onAction({
-					type:args[0],
-					data:args[1]
-				});
-			} else if (typeof args[0] === "string" &&
-				typeof args[1] === "function"){
-				let st = getStateAt(args[0]); 
-				args[1](dispatch,getStateAt,st);
-			} else if (typeof args[0] === "function"){
-				args[0](dispatch,getStateAt,args[1]); 
+			if (typeof args[0] === "function") {
+				return args[0](dispatch,getStateAt,args[1]);
+			}else if (typeof args[0] === "object"){
+				return onAction(args[0]);
 			}
 		}
 	}

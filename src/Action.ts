@@ -24,6 +24,8 @@ export interface Action{
 	 * @memberOf Action
 	 */
 	app?:string; 
+
+	onDone?:()=>void; 
 }
 
 /**

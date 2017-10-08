@@ -44,13 +44,19 @@ class Basic extends React.Component<any,any>{
         this.props.store.dispatch({ 
             type:1,
             data:2222
+        }).then(()=>{
+            console.log("the promise is resolved")
         });
     }
 
     onChange(txt:string){
-        this.props.store.dispatch({
-            type:1,
-            data:txt
+        this.props.store.dispatch((dispatch,getState)=>{
+            return dispatch({
+                type:1,
+                data:txt
+            });
+        }).then(()=>{
+            console.log("this is the function resolved: ");
         });
     }
 

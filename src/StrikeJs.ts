@@ -11,7 +11,7 @@ import {WorkerMiddleware,MultiWorkerMiddleware} from './WorkerMiddleware';
 
 
 (function(){
-    if (window && document){
+    if (self.window && self.document){
         (window as any).StrikeJS = {
             createStore,
             createPool,

@@ -570,6 +570,11 @@ export interface IManagedState<V> {
         (dispatch:(action:Action|ActionGenerator<any>)=>void,getState:<T>(key:string)=>T,extra?:V);
     }
 
+    export type Dispatcher<R> = <V>(dispatch:Dispatcher<any>,getState:StateGetter,extra?:V)=>R; 
+    
+    export type StateGetter = <T>(key:string)=>T; 
+    
+
     /**
      * A state container store 
      */
@@ -602,18 +607,24 @@ export interface IManagedState<V> {
         /**
          * Dispatches an action within the store. 
          * @param {Action} action the action to dispatch. 
+         * @returns {Promise<void>} if promises are supported by the browser. 
+         * The promise is resolved when the view is updated. Otherwise, returns `void`. 
          * @throws {Error} if no action is provided 
          */
-        dispatch(action:Action):void;  
+        dispatch(action:Action):Promise<void>|void;
+        /**
+         * Dispatches an action within the store. 
+         * @param {Action} action the action to dispatch. 
+         * @param {function} cb a callback to be executed when the view has been updated. 
+         * *Note*: The `onDone` function of the action is set to be the provided callback.  
+         */
+        dispatch(action:Action,cb:()=>void):void;
+        
         /**
          * Passes the dispatch fn to an action generator function 
-         * @param {ActionGenerator} actionGenerator the action generator to dispatch 
+         * @param {Dispatcher<R>} actionGenerator the action generator to dispatch 
          */
-        dispatch<V>(actionGenerator:ActionGenerator<V>,extra?:V):void;
-        /**
-         * Passes a state key to be passed as the extra parameter for the action generator 
-         */
-        dispatch<V>(key:string,fn:ActionGenerator<V>):void; 
+        dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
         /**
          * Sets the store to be ready to execute actions. 
          */
