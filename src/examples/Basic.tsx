@@ -18,6 +18,7 @@ class Dino extends React.Component<any,any>{
             <div className="bit">
                 <div className="input">
                     <input type="number" onChange={this.onChange} value={this.props.value} />
+                    {this.props.name}
                 </div>
             </div>
         );
@@ -53,12 +54,16 @@ class Basic extends React.Component<any,any>{
         });
     }
 
+    // componentWillReceiveProps(){
+    //     this.props.dispatch(act2); 
+    // }
+
     render(){
         let {data} = this.props;
         return (
             <div className="container">
                 <div onClick={this.onClick}>Click me</div>
-                <Dino onChange={this.onChange} value={data.input} />
+                <Dino name={data.name} onChange={this.onChange} value={data.input} />
 
             </div>
         );
@@ -78,40 +83,96 @@ let store = createStore({
 
 const CV = createControllerView({
     component:Basic,
-    initialState:{
-        name:'Borqa',
-        input:0,
+    propsToPropagate:['namex'],
+    initialState:(props)=>{
+        return {
+            input:10, 
+        }
+    },
+    propsToData:(props,state:any)=>{
+        return {
+            name:props.namex
+        };
     },
     reducer:(state,action)=>{
-        state.$set('input',action.data);
+        var input = state.$get('input'); 
+        switch(action.type){
+            case 1:
+            state.$set('input',input + 1);
+            break;
+            case 2:
+            state.$set('input',input+1000); 
+            break;
+        }
     },
     stateKey:'basic'
 
 });
-ReactDOM.render(<CV store={store} injector={null} 
-persistenceStrategy={cx} />,div);
+ReactDOM.render(<CV store={store} namex='Suhail 2' injector={null} persistenceStrategy={cx} />,div);
 
 var i = 0; 
 
-var count = 0; 
+var count = 0;
 
-function tick(){
-    count++;
-    if (count === 2){
-        i++;
+function act(dispatch,getState,box){
+    var k = getState('basic');
+    console.log(k);
+    store.dispatch({
+        type:1,
+        data:i
+    });
+    store.dispatch({
+        type:1,
+        data:i
+    });
+
+    setTimeout(()=>{
+        store.dispatch(act2); 
         store.dispatch({
             type:1,
             data:i
         });
+        store.dispatch(act2);
+    })
+}
+
+function act2(dispatch,getStaet,box){
+    store.dispatch({
+        type:1,
+        data:i
+    });
+    new Promise((resolve)=>{
+        setTimeout(()=>{
+            resolve(); 
+        },5000)
+    })
+    .then(()=>{
+        store.dispatch({
+            type:2,
+            data:1
+        });
+    })
+    store.dispatch({
+        type:1,
+        data:i
+    });
+}
+
+function tick(){
+    count++;
+    if (count == 10){
+        i++;
+        store.dispatch(act);
+        
         count = 0; 
 
     } 
 
-    requestAnimationFrame(tick);
+    // requestAnimationFrame(tick);
 }
 
 // requestAnimationFrame(tick);
 
 setTimeout(()=>{
     ReactDOM.unmountComponentAtNode(div);
-},10000);
+},5000000);

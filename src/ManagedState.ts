@@ -77,6 +77,7 @@ export function createManagedState<V>(s?:Dictionary<any>):IManagedState<V>{
 	function $set<T>(key:keyof V,val:T):IManagedState<V>{
 		if (state[key] !== val){
 			_changes[key] = val; 
+			state[key] = val; 
 			_hasChanges = true;
 		}
 		return o; 

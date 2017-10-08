@@ -106,6 +106,7 @@ export function createStore(cfg:StoreCfg):IStore{
 	let trackChanges = typeof cfg.trackChanges === "undefined"?false:cfg.trackChanges; 
 	let o:IStore = null;
 	let queue:Action[] = [];
+	let state = {}; 
 	let pool = createPool(createManagedState); 
 	let pendingChanges = {}; 
 	let waitingQueue = {}; 
@@ -113,6 +114,7 @@ export function createStore(cfg:StoreCfg):IStore{
 	function connect<T,V>(el:StatefulComponent<T,V>):IStore{
 		var key = el.getStateKey(); 
 		components[key] = el; 
+		state[key] = el.state; 
 		waitingQueue[key] = undefined; 
 		pendingChanges[key] = false; 
 		return o; 
@@ -122,16 +124,19 @@ export function createStore(cfg:StoreCfg):IStore{
 		delete components[el.getStateKey()]; 
 		delete waitingQueue[el.getStateKey()];
 		delete pendingChanges[el.getStateKey()]; 
+		delete state[el.getStateKey()]; 
 		return o;
 	}
 
 	function getStateAt<T>(key:string){
-		return components[key] && components[key].state; 
+		return state[key]; 
+		// return components[key] && components[key].state; 
 	}
 
 	function setStateAt<T>(key:string,val:T):IStore{
 		if (components[key]){
-			components[key].setState(val);
+			state[key] = val; 
+			components[key].setState(state[key]);
 			return o; 
 		}
 		throw new Error(`Component with key ${key} could not be found`); 
@@ -168,16 +173,16 @@ export function createStore(cfg:StoreCfg):IStore{
 	function doExecute(key,action){
 		let managedState = pool.get();
 		let component = components[key]; 
-		managedState.setState(component.state); 
+		managedState.setState(state[key]); 
 		let rd = component.getReducer();
 		if (rd){
 			rd(managedState,action);
 			if (managedState.hasChanges()){
 				var changes = managedState.changes(); 
-				pendingChanges[key] = true; 
+				// pendingChanges[key] = true; 
 				component.setState(()=>changes,()=>{
-					pendingChanges[key] = false; 
-					doneExecute(key);
+					// pendingChanges[key] = false; 
+					// doneExecute(key);
 					action.onDone && action.onDone(); 
 				});
 			}
@@ -198,10 +203,10 @@ export function createStore(cfg:StoreCfg):IStore{
 				backlog.push(action);
 			}
 			for(var key in components){
-				if (hasPendingChanges(key)){
-					whenReady(key,action);
-					continue; 
-				}
+				// if (hasPendingChanges(key)){
+				// 	whenReady(key,action);
+				// 	continue; 
+				// }
 				doExecute(key,action); 
 			}
 		}

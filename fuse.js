@@ -1,23 +1,27 @@
-const { FuseBox, SassPlugin, CSSPlugin, TypeScriptHelpers, UglifyJSPlugin,JSONPlugin, HTMLPlugin } = require('fuse-box');
-const path = require("path");
+const {FuseBox, EnvPlugin, CSSPlugin, UglifyJSPlugin, TypeScriptHelpers} = require("fuse-box");
 
-const fuseBox = FuseBox.init({
+const production = false;
+const fuse = FuseBox.init({
     homeDir: "src",
-    
-    sourcemaps: true,
-    // serverBundle: true,
-    outFile: `./lib/examples/Basic.js`,
+    output: "dist/$name.js",
+    hash: production,
+    cache: !production,
+    tsConfig: "tsconfig.json",
+    useTypescriptCompiler: true,
     plugins: [
-        JSONPlugin(),
-        [TypeScriptHelpers()/*,UglifyJSPlugin()*/]
+        // TypeScriptHelpers(),
+        EnvPlugin({ NODE_ENV: production ? "production" : "development" }),
+        CSSPlugin(), production && UglifyJSPlugin()
     ]
 });
+fuse.bundle("app")
+    .instructions(`> ./examples/Basic.tsx`)
+    // .hmr()
+    .watch()
+    .hmr();
+    // .watch();
+fuse.dev({
+    root:'./dist'
+}); 
 
-fuseBox.devServer('>examples/Basic.tsx',{
-    // httpServer:false,
-    port:3232
-});
-
-// fuseBox.bundle('>index.tsx');
-
-module.exports = fuseBox;
+fuse.run();
