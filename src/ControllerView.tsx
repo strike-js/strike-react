@@ -1,13 +1,12 @@
 import * as React from 'react';
 import {Action} from './Action'; 
-import { IStore, StoreCfg, ActionGenerator } from './Store'; 
+import { IStore, StoreCfg, DispatchFn } from './Store'; 
 import {IManagedState} from './ManagedState'; 
 import {DependencyContainer} from './Injector'; 
 import {IMiddleware,IMiddlewareNext} from './Middleware'; 
 import {PersistenceStrategy,FunctionalPersistenceStrategy} from './PersistenceStrategy'; 
 
 export type RouteParams = Dictionary<any> & {test(path:string):any,path:string,route:string};
-
 /**
  * Properties that will be passed to the wrapped controller components. 
  * The state of the wrapping component will be passed inside `data`. 
@@ -27,7 +26,7 @@ export interface ControllerProps<V>{
 	 * @param {Action} action the action to dispatch. 
 	 * @throws {Error} if no action is provided 
 	 */
-	dispatch(action:Action|Promise<Action>|ActionGenerator<any>):void; 
+	dispatch:DispatchFn;
 
 
 	routeParams?:RouteParams; 
@@ -67,6 +66,8 @@ export interface ControllerViewProps<T> {
 	routeParams?:RouteParams; 
 
 	router?:any;
+
+	dispatch?:DispatchFn;
 
 }
 
@@ -137,9 +138,6 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			if (typeof propsModifier === "function"){
 				propsModifier<W>(props,propsObject); 
 			}
-			// if (typeof propsToData === "function"){
-			// 	propsObject.data = propsToData(props,{routeParams:props.routeParams,...this.state});
-			// }
 			
 		}
 

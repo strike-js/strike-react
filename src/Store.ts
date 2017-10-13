@@ -7,22 +7,30 @@ import * as React from 'react';
 import {Action} from './Action';
 
 /**
- * A function that consumes an {@link Action}
+ * Returns value at a given key with in an object literal. 
+ * 
+ * @export
+ * @param {object} object the object to use 
+ * @param {string} path the path to return its value 
+ * @param {string} p path separator, defaults to '.'
+ * @returns {any} the value at the given key 
  */
-export interface ActionConsumer {
-	(action:Action):void; 
+export function getDataAt<T>(object: any, path: string, p: string): T {
+   let o: any = object,
+	   key: string,
+	   temp: any,
+	   pathSep: string = p ? p : '.',
+	   list: string[] = path.split(pathSep);
+   while ((key = list.shift()) && (temp = o[key]) && (o = temp));
+   return temp;
 }
 
-// /**
-//  * A function that receives an action consumer {@link ActionConsume} which is 
-//  * then called with an action. 
-//  */
-// export interface ActionGenerator<V,T>{
-// 	(dispatch:(action:Action):T;
-// }
-
-
-export type Dispatcher<R> = <V>(dispatch:Dispatcher<any>,getState:StateGetter,extra?:V)=>R; 
+export interface DispatchFn {
+	<V,R>(fn:(dispatch:DispatchFn,getState:StateGetter,extra:V)=>R,extra:V):R;
+	<V>(fn:(dispatch:DispatchFn,getState:StateGetter)=>V):V;
+	<V>(action:Action,cb:()=>void):void; 
+	(action:Action):Promise<void>;  
+}
 
 export type StateGetter = <T>(key:string)=>T; 
 
@@ -30,11 +38,6 @@ export type StateGetter = <T>(key:string)=>T;
  * Represents store configuration options 
  */
 export interface StoreCfg {
-	/**
-	 * @type {boolean} 
-	 * @description whether the store is ready to execute actions. 
-	 */
-	ready?:boolean; 
 	/**
 	 * @type {boolean}
 	 * @description whether the store to track changes.
@@ -83,24 +86,7 @@ export interface IStore {
 	 * The promise is resolved when the view is updated. Otherwise, returns `void`. 
 	 * @throws {Error} if no action is provided 
 	 */
-	dispatch(action:Action):Promise<void>|void;
-	/**
-	 * Dispatches an action within the store. 
-	 * @param {Action} action the action to dispatch. 
-	 * @param {function} cb a callback to be executed when the view has been updated. 
-	 * *Note*: The `onDone` function of the action is set to be the provided callback.  
-	 */
-	dispatch(action:Action,cb:()=>void):void;
-	
-	/**
-	 * Passes the dispatch fn to an action generator function 
-	 * @param {Dispatcher<R>} actionGenerator the action generator to dispatch 
-	 */
-	dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
-	/**
-	 * Sets the store to be ready to execute actions. 
-	 */
-	ready():void;
+	dispatch:DispatchFn;
 }
 
 /**
@@ -113,35 +99,26 @@ export function createStore(cfg:StoreCfg):IStore{
 	let actions:Dictionary<Action> = {}; 
 	let backlog:Action[] = [];
 	let middlewares:IMiddleware[] = cfg.middlewares || [];
-	let isReady = typeof cfg.ready === "undefined"?true:cfg.ready; 
 	let trackChanges = typeof cfg.trackChanges === "undefined"?false:cfg.trackChanges; 
 	let o:IStore = null;
-	let queue:Action[] = [];
 	let state = {}; 
 	let pool = createPool(createManagedState); 
-	let pendingChanges = {}; 
-	let waitingQueue = {}; 
 
 	function connect<T,V>(el:StatefulComponent<T,V>):IStore{
 		var key = el.getStateKey(); 
 		components[key] = el; 
-		state[key] = el.state; 
-		waitingQueue[key] = undefined; 
-		pendingChanges[key] = false; 
+		state[key] = el.state || {}; 
 		return o; 
 	} 
 
 	function disconnect<T,V>(el:StatefulComponent<T,V>):IStore{
 		delete components[el.getStateKey()]; 
-		delete waitingQueue[el.getStateKey()];
-		delete pendingChanges[el.getStateKey()]; 
 		delete state[el.getStateKey()]; 
 		return o;
 	}
 
 	function getStateAt<T>(key:string){
-		return state[key]; 
-		// return components[key] && components[key].state; 
+		return getDataAt<T>(state,key,'.');//state[key]; 
 	}
 
 	function setStateAt<T>(key:string,val:T):IStore{
@@ -165,20 +142,7 @@ export function createStore(cfg:StoreCfg):IStore{
 			idx++; 
 			return m(action,o,next);
 		}
-
 		next(action); 
-	}
-
-	function hasPendingChanges(key:string){
-		return pendingChanges[key]; 
-	}
-
-	function doneExecute(key){
-		if (waitingQueue[key] && waitingQueue[key].length){
-			waitingQueue[key].shift()(); 
-			return; 
-		}
-		// pendingChanges[key] = false; 
 	}
 	
 	function doExecute(key,action){
@@ -209,18 +173,10 @@ export function createStore(cfg:StoreCfg):IStore{
 		}
 	}
 
-	function ready(){
-		isReady = true; 
-		let action:Action = null;
-		while((action = queue.shift())){
-			dispatch.apply(null,action);
-		}
-	}
-
 	function onAction(action:Action,cb?:()=>void){
-		action.onDone = cb; 
+		action.onDone = action.onDone || cb ; 
 		if (!cb){
-			if (self.Promise){
+			if (typeof Promise !== "undefined"){
 				return new Promise((res)=>{
 					action.onDone = res; 
 					let act = applyMiddleware(action,(finalAction)=>{
@@ -238,15 +194,7 @@ export function createStore(cfg:StoreCfg):IStore{
 		console.log(err,err.message,err.stack);
 	}
 
-
-	function dispatch(action:Action):Promise<void>|void;
-	function dispatch(action:Action,cb:()=>void):void;
-	function dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
-	function dispatch(...args:any[]){
-		// if (!isReady){
-		// 	queue.push(Array.prototype.slice.call(args,0));
-		// 	return;
-		// }
+	const dispatch:DispatchFn = function(...args:any[]){
 		if (args.length === 0){
 			throw new Error(`No action provided`); 
 		}else if (args.length === 1){
@@ -259,7 +207,7 @@ export function createStore(cfg:StoreCfg):IStore{
 			if (typeof args[0] === "function") {
 				return args[0](dispatch,getStateAt,args[1]);
 			}else if (typeof args[0] === "object"){
-				return onAction(args[0]);
+				return onAction(args[0],args[1]);
 			}
 		}
 	}
@@ -270,8 +218,7 @@ export function createStore(cfg:StoreCfg):IStore{
 		disconnect,
 		getStateAt,
 		setStateAt,
-		dispatch,
-		ready,
+		dispatch
 	}; 
 
 	return o; 

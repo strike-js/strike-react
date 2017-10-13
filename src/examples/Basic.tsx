@@ -44,8 +44,8 @@ class Basic extends React.Component<any,any>{
         this.props.store.dispatch({ 
             type:1,
             data:2222
-        }).then(()=>{
-            console.log("the promise is resolved")
+        },()=>{
+            console.log('callback');
         });
     }
 
@@ -82,12 +82,11 @@ let cx = localStorageStrategy();
 let div = document.createElement('div'); 
 document.body.appendChild(div); 
 let store = createStore({
-    ready:true,
     trackChanges:false,
     middlewares:[]
 });
 
-const CV = createControllerView({
+const CV = createControllerView<any,any,any>({
     component:Basic,
     propsToPropagate:['namex'],
     initialState:(props)=>{
@@ -130,6 +129,8 @@ function act(dispatch,getState,box){
     store.dispatch({
         type:1,
         data:i
+    },()=>{
+        console.log('callback');
     });
 
     setTimeout(()=>{
@@ -142,7 +143,7 @@ function act(dispatch,getState,box){
     })
 }
 
-function act2(dispatch,getStaet,box){
+function act2(dispatch,getState){
     store.dispatch({
         type:1,
         data:i
@@ -168,7 +169,7 @@ function tick(){
     count++;
     if (count == 10){
         i++;
-        store.dispatch(act);
+        store.dispatch(act,1);
         
         count = 0; 
 

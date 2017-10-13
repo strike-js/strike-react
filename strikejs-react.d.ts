@@ -3,6 +3,17 @@ declare module "strikejs-react" {
     import * as React from 'react';
 
     /**
+     * Returns value at a given key with in an object literal. 
+     * 
+     * @export
+     * @param {object} object the object to use 
+     * @param {string} path the path to return its value 
+     * @param {string} p path separator, defaults to '.'
+     * @returns {any} the value at the given key 
+     */
+    export function getDataAt<T>(object: any, path: string, p: string): T 
+
+    /**
      * Routing params to be propagated if found
      */
     export type RouteParams = Dictionary<any> & {test(path:string):any,path:string,route:string};
@@ -123,13 +134,31 @@ declare module "strikejs-react" {
          * Passes the dispatch fn to an action generator function 
          * @param {ActionGenerator} actionGenerator the action generator to dispatch 
          */
-        dispatch<V>(actionGenerator:Action|ActionGenerator<V>,extra?:V):void;
+        dispatch:DispatchFn;
 
         routeParams?:RouteParams; 
 
         dataStore?:DataStore; 
 
         router?:any;
+    }
+
+    /**
+     * Returns value at a given key with in an object literal. 
+     * 
+     * @export
+     * @param {object} object the object to use 
+     * @param {string} path the path to return its value 
+     * @param {string} p path separator, defaults to '.'
+     * @returns {any} the value at the given key 
+     */
+    export function getDataAt<T>(object: any, path: string, p: string): T;
+    
+    export interface DispatchFn {
+        <V,R>(fn:(dispatch:DispatchFn,getState:StateGetter,extra:V)=>R,extra:V):R;
+        <V>(fn:(dispatch:DispatchFn,getState:StateGetter)=>V):V;
+        <V>(action:Action,cb:()=>void):void; 
+        (action:Action):Promise<void>;  
     }
 
     /**
@@ -149,11 +178,13 @@ declare module "strikejs-react" {
 
         injector:DependencyContainer; 
 
-        dataStore?:DataStore; 
+        dataStore?:DataStore;
 
-        routeParams?:RouteParams;
+        routeParams?:RouteParams; 
 
         router?:any;
+
+        dispatch?:DispatchFn;
 
     }
 
@@ -546,11 +577,6 @@ export interface IManagedState<V> {
      */
     export interface StoreCfg {
         /**
-         * @type {boolean} 
-         * @description whether the store is ready to execute actions. 
-         */
-        ready?:boolean; 
-        /**
          * @type {boolean}
          * @description whether the store to track changes.
          */
@@ -562,18 +588,16 @@ export interface IManagedState<V> {
         middlewares?:IMiddleware[];
     }
 
-    /**
-     * A function that receives an action consumer {@link ActionConsume} which is 
-     * then called with an action. 
-     */
-    export interface ActionGenerator<V>{
-        (dispatch:(action:Action|ActionGenerator<any>)=>void,getState:<T>(key:string)=>T,extra?:V);
+    
+    
+    export interface DispatchFn {
+        <V,R>(dispatch:DispatchFn,getState:StateGetter,extra:V):R;
+        <V>(dispatch:DispatchFn,getState:StateGetter):V;
+        (action:Action,cb:()=>void):void; 
+        (action:Action):Promise<void>;  
     }
 
-    export type Dispatcher<R> = <V>(dispatch:Dispatcher<any>,getState:StateGetter,extra?:V)=>R; 
-    
     export type StateGetter = <T>(key:string)=>T; 
-    
 
     /**
      * A state container store 
@@ -611,24 +635,7 @@ export interface IManagedState<V> {
          * The promise is resolved when the view is updated. Otherwise, returns `void`. 
          * @throws {Error} if no action is provided 
          */
-        dispatch(action:Action):Promise<void>|void;
-        /**
-         * Dispatches an action within the store. 
-         * @param {Action} action the action to dispatch. 
-         * @param {function} cb a callback to be executed when the view has been updated. 
-         * *Note*: The `onDone` function of the action is set to be the provided callback.  
-         */
-        dispatch(action:Action,cb:()=>void):void;
-        
-        /**
-         * Passes the dispatch fn to an action generator function 
-         * @param {Dispatcher<R>} actionGenerator the action generator to dispatch 
-         */
-        dispatch<T,R>(generator:Dispatcher<R>,extra?:T):R;
-        /**
-         * Sets the store to be ready to execute actions. 
-         */
-        ready():void;
+        dispatch:DispatchFn;
     }
 
     /**

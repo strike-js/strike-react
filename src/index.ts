@@ -15,9 +15,11 @@ export {createStore,Injector,Injectable,
     createPool,MultiWorkerMiddleware,WebSocketMiddleware,
     PromisifyMiddleware,createControllerView,
     localStorageStrategy}; 
+    
+declare var module; 
 
-(function(StrikeJS:any){
-    if (typeof self.localStorage !== "undefined"){
+(function(StrikeJS:any, hasSelf){
+    if (hasSelf){
         StrikeJS.localStorageStrategy = localStorageStrategy; 
     }
     StrikeJS.createStore = createStore; 
@@ -31,4 +33,4 @@ export {createStore,Injector,Injectable,
     StrikeJS.Injector = Injector;
     StrikeJS.MultiWorkerMiddleware = MultiWorkerMiddleware; 
     StrikeJS.WebSocketMiddleware = WebSocketMiddleware; 
-}((self as any).StrikeJS = (self as any).StrikeJS || {}));
+}(((typeof self) !== "undefined") ? ((self as any).StrikeJS = (self as any).StrikeJS || {}) :( module.exports.StrikeJS = {})),((typeof self) !== "undefined"));
