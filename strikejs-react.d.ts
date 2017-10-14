@@ -129,18 +129,21 @@ declare module "strikejs-react" {
          * The store of the application.
          */
         store:IStore; 
- 
+    
         /**
-         * Passes the dispatch fn to an action generator function 
-         * @param {ActionGenerator} actionGenerator the action generator to dispatch 
+         * Dispatches an action within the store. 
+         * @param {Action} action the action to dispatch. 
+         * @throws {Error} if no action is provided 
          */
         dispatch:DispatchFn;
-
+    
         routeParams?:RouteParams; 
-
+    
         dataStore?:DataStore; 
-
+    
         router?:any;
+    
+        persistenceStrategy?:PersistenceStrategy|FunctionalPersistenceStrategy;
     }
 
     /**
@@ -161,48 +164,29 @@ declare module "strikejs-react" {
         (action:Action):Promise<void>;  
     }
 
-    /**
-     * Default properties of {ControllerView} components
-     * 
-     * @export
-     * @interface ControllerViewProps
-     */
-    export interface ControllerViewProps<T> {
-        /**
-         * 
-         * @type {Store}
-         */
-        store:IStore;
-
-        persistenceStrategy?:PersistenceStrategy|FunctionalPersistenceStrategy<T>;
-
-        injector:DependencyContainer; 
-
-        dataStore?:DataStore;
-
-        routeParams?:RouteParams; 
-
-        router?:any;
-
-        dispatch?:DispatchFn;
-
-    }
-
     export interface FunctionalComponent<T>{
         (props:T):React.ReactElement<T>; 
     }
 
-    export interface ControllerViewConfig<T,V,W> {
+    export interface ControllerViewConfig<State,Props extends ControllerProps<State>> {
         reducer?(state:any,action:Action):void;
-        initialState?:V|((props:W)=>V);
+        initialState?:State|((props:Props)=>State);
         stateKey:string;
-        component:React.ComponentClass<T>|FunctionalComponent<T>;
+        component:React.ComponentClass<Props>|FunctionalComponent<Props>;
         deps?:string[]|Dictionary<string>;
         propsToPropagate?:string[];
-        propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
+        propsToData?:(props:Props,data:State)=>State;
+        propsModifier?(props:Props,dest:Dictionary<any>):void;
     }
 
-    export function createControllerView<T extends ControllerProps<V>,V,W extends ControllerViewProps<V>>(cfg:ControllerViewConfig<T,V,W>);
+    export function createControllerView<State,Props extends ControllerProps<State>>({
+        component,
+        reducer,
+        initialState,
+        deps,propsModifier,
+        propsToPropagate,
+        propsToData, 
+        stateKey}:ControllerViewConfig<State,Props>);
 
     /**
      * Creates a middleware that can handle {PromiseAction} 
@@ -477,21 +461,20 @@ export interface IManagedState<V> {
         get<T>(key:string,cb:(err:Error,data:T)=>void):void
     }
 
-
-    export interface FunctionalPersistenceStrategy<T>{
+    export interface FunctionalPersistenceStrategy{
         /**
          * A function to rertrieve data from a persistence store. 
          * @param {string} key the key to the data. 
          * @param {function} cb a NodeJS style callback with error as its first param, and the data as its second. 
          */
-        (key:string,cb:(err:Error,data:T)=>void):void; 
+        <T>(key:string,cb:(err:Error,data:T)=>void):void; 
         /**
          * A function persistence strategy to store data in a persistence store. 
          * @param {string} key the key to the data. 
          * @param {any} data the data to store. 
          * @param {function} cb a NodeJS style callback with error as its first param, and the data as its second. 
          */
-        (key:string,val:T,cb:(err:Error,data?:any)=>void):void; 
+        <T>(key:string,val:T,cb:(err:Error,data?:any)=>void):void; 
     }
 
     /**

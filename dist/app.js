@@ -213,7 +213,6 @@ function createControllerView(_a) {
             var _this = _super.call(this, props) || this;
             _this.state = typeof initialState === "function" ? initialState(props) : initialState;
             store = props.store;
-            injector = props.injector;
             propsObject.store = props.store;
             propsObject.dataStore = props.dataStore;
             propsObject.dispatch = store.dispatch;

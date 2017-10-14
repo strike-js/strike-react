@@ -86,7 +86,7 @@ let store = createStore({
     middlewares:[]
 });
 
-const CV = createControllerView<any,any,any>({
+const CV = createControllerView<any,any>({
     component:Basic,
     propsToPropagate:['namex'],
     initialState:(props)=>{

@@ -31,18 +31,18 @@ export interface PersistenceStrategy {
 }
 
 
-export interface FunctionalPersistenceStrategy<T>{
+export interface FunctionalPersistenceStrategy{
     /**
      * A function to rertrieve data from a persistence store. 
      * @param {string} key the key to the data. 
      * @param {function} cb a NodeJS style callback with error as its first param, and the data as its second. 
      */
-	(key:string,cb:(err:Error,data:T)=>void):void; 
+	<T>(key:string,cb:(err:Error,data:T)=>void):void; 
     /**
      * A function persistence strategy to store data in a persistence store. 
      * @param {string} key the key to the data. 
      * @param {any} data the data to store. 
      * @param {function} cb a NodeJS style callback with error as its first param, and the data as its second. 
      */
-	(key:string,val:T,cb:(err:Error,data?:any)=>void):void; 
+	<T>(key:string,val:T,cb:(err:Error,data?:any)=>void):void; 
 }

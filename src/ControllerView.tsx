@@ -28,12 +28,13 @@ export interface ControllerProps<V>{
 	 */
 	dispatch:DispatchFn;
 
-
 	routeParams?:RouteParams; 
 
 	dataStore?:DataStore; 
 
 	router?:any;
+
+	persistenceStrategy?:PersistenceStrategy|FunctionalPersistenceStrategy;
 }
 
 /**
@@ -44,71 +45,44 @@ export interface DataStore {
 	set(key:string,val:any):any;
 }
 
-/**
- * Default properties of {ControllerView} components
- * 
- * @export
- * @interface ControllerViewProps
- */
-export interface ControllerViewProps<T> {
-	/**
-	 * 
-	 * @type {Store}
-	 */
-	store:IStore;
-
-	persistenceStrategy?:PersistenceStrategy|FunctionalPersistenceStrategy<T>;
-
-	injector:DependencyContainer; 
-
-	dataStore?:DataStore;
-
-	routeParams?:RouteParams; 
-
-	router?:any;
-
-	dispatch?:DispatchFn;
-
-}
 
 export interface FunctionalComponent<T>{
 	(props:T):React.ReactElement<T>; 
 }
 
-export interface ControllerViewConfig<T,V,W> {
+export interface ControllerViewConfig<State,Props extends ControllerProps<State>> {
 	reducer?(state:any,action:Action):void;
-	initialState?:V|((props:W)=>V);
+	initialState?:State|((props:Props)=>State);
 	stateKey:string;
-	component:React.ComponentClass<T>|FunctionalComponent<T>;
+	component:React.ComponentClass<Props>|FunctionalComponent<Props>;
 	deps?:string[]|Dictionary<string>;
 	propsToPropagate?:string[];
-	propsToData?:(props:T,data:V)=>V;
-	propsModifier?<W extends ControllerViewProps<V>>(props:W,dest:Dictionary<any>):void;
+	propsToData?:(props:Props,data:State)=>State;
+	propsModifier?(props:Props,dest:Dictionary<any>):void;
 }
 
-export function createControllerView<T extends ControllerProps<V>,V,W extends ControllerViewProps<V>>({
+export function createControllerView<State,Props extends ControllerProps<State>>({
 	component,
 	reducer,
 	initialState,
 	deps,propsModifier,
 	propsToPropagate,
 	propsToData, 
-	stateKey}:ControllerViewConfig<T,V,W>){
+	stateKey}:ControllerViewConfig<State,Props>){
 	var store:IStore = null; 
 	var injector:DependencyContainer = null; 
-	var propsObject:ControllerProps<V> = {
+	var propsObject:ControllerProps<State> = {
 		data:null,
 		store:null,
 		dispatch:null
 	}; 
 
-	return class extends React.Component<W,V>{
-		constructor(props:W){
+	return class extends React.Component<Props,State>{
+		constructor(props:Props){
 			super(props); 
 			this.state = typeof initialState === "function"?initialState(props):initialState; 
 			
 			store = props.store; 
-			injector = props.injector; 
 			propsObject.store = props.store;
 			propsObject.dataStore = props.dataStore; 
 			propsObject.dispatch = store.dispatch; 
@@ -128,7 +102,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			}
 		}
 
-		propagateProps(props:W){
+		propagateProps(props:Props){
 			propsObject.routeParams = props.routeParams;
 			if (propsToPropagate instanceof Array){
 				propsToPropagate.forEach((e)=>{
@@ -136,9 +110,8 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 				});
 			}
 			if (typeof propsModifier === "function"){
-				propsModifier<W>(props,propsObject); 
+				propsModifier(props,propsObject); 
 			}
-			
 		}
 
 		getStateKey(){
@@ -154,14 +127,14 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 		}
 
 		componentWillMount(){
-			store.connect<T,V>(this);
+			store.connect<Props,State>(this);
 		}
 
 		componentDidMount(){
 			const persistenceStrategy = this.props.persistenceStrategy; 
 			if (persistenceStrategy){
 				if (typeof persistenceStrategy === "function"){
-					(persistenceStrategy as FunctionalPersistenceStrategy<V>)(stateKey,(err,data)=>{
+					(persistenceStrategy as FunctionalPersistenceStrategy)(stateKey,(err,data)=>{
 						if (err){
 							console.error(err.message,err.stack); 
 							return;
@@ -194,8 +167,8 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 			let state = this.state; 
 			const persistenceStrategy = this.props.persistenceStrategy; 
 			if (typeof persistenceStrategy === "function"){
-				(persistenceStrategy as FunctionalPersistenceStrategy<V>)(stateKey,state,(err,data)=>{
-					store.disconnect<T,V>(this);
+				(persistenceStrategy as FunctionalPersistenceStrategy)(stateKey,state,(err,data)=>{
+					store.disconnect<Props,State>(this);
 					if (err){
 						throw err;
 					}
@@ -206,14 +179,14 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 				let p:PersistenceStrategy = persistenceStrategy as any; 
 				if (p.put.length === 2) {
 					p.put(stateKey,state).then((data)=>{
-						store.disconnect<T,V>(this);
+						store.disconnect<Props,State>(this);
 					},(err)=>{
 						console.log(err);
 					});
 					return; 
 				} else if (p.put.length === 3) {
 					p.put(stateKey,state,(err,data)=>{
-						store.disconnect<T,V>(this);
+						store.disconnect<Props,State>(this);
 						if (err){
 							throw err; 
 						}
@@ -221,7 +194,7 @@ export function createControllerView<T extends ControllerProps<V>,V,W extends Co
 					return; 
 				} 
 			} 
-			store.disconnect<T,V>(this);
+			store.disconnect<Props,State>(this);
 		}
 
 		render(){
