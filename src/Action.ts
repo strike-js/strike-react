@@ -26,6 +26,9 @@ export interface Action{
 	app?:string; 
 
 	onDone?:()=>void; 
+	__done?:()=>void; 
+
+	__executed:boolean; 
 }
 
 /**

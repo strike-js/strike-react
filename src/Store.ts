@@ -153,9 +153,10 @@ export function createStore(cfg:StoreCfg):IStore{
 		if (rd){
 			rd(managedState,action);
 			if (managedState.hasChanges()){
+				action.__executed = true; 
 				var changes = managedState.changes(); 
 				component.setState(()=>changes,()=>{
-					action.onDone && typeof action.onDone === "function" && action.onDone(); 
+					action.__done && typeof action.__done === "function" && action.__done(); 
 				});
 			}
 		}
@@ -170,15 +171,19 @@ export function createStore(cfg:StoreCfg):IStore{
 			for(var key in components){
 				doExecute(key,action); 
 			}
+			if (!action.__executed){
+				action.__done();
+			}
 		}
 	}
 
 	function onAction(action:Action,cb?:()=>void){
-		action.onDone = action.onDone || cb ; 
+		action.__done = cb ; 
+		action.__executed = false; 
 		if (!cb){
 			if (typeof Promise !== "undefined"){
 				return new Promise((res)=>{
-					action.onDone = res; 
+					action.__done = res; 
 					let act = applyMiddleware(action,(finalAction)=>{
 						finalAction && execute(finalAction); 
 					}); 
